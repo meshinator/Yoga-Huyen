@@ -12,8 +12,48 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Ibarra+Real+Nova:ital,wght@0,400;0,700;1,400;1,700&display=swap"
         rel="stylesheet">
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const IMAGES = {
+        var SUPABASE_URL = 'https://ipuxdhfkclrjmpsqbeuy.supabase.co';
+        var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwdXhkaGZrY2xyam1wc3FiZXV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjMzMjAsImV4cCI6MjA5NjkzOTMyMH0.91_R8Zq6lIEseDezlrB5Iz-JQhNx4nElceKo2jFlbMM';
+
+        // Direct REST helper - uses fetch directly to Supabase REST API
+        // Never throws uncaught - always returns null on failure
+        async function sbRest(table, method, body, query) {
+            var url = SUPABASE_URL + '/rest/v1/' + table;
+            if (query) url += query;
+            var headers = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                'Content-Type': 'application/json'
+            };
+            if (method === 'POST' || method === 'PATCH' || method === 'DELETE') {
+                headers['Prefer'] = 'return=representation';
+            }
+            var opts = {
+                method: method,
+                headers: headers
+            };
+            if (body) opts.body = JSON.stringify(body);
+            try {
+                var resp = await fetch(url, opts);
+                var text = await resp.text();
+                var json = text ? JSON.parse(text) : null;
+                if (!resp.ok) {
+                    var errMsg = (json && (json.message || json.msg || json.code)) || resp.statusText || 'Unknown error';
+                    console.warn('sbRest error:', method, table, errMsg);
+                    throw { message: errMsg, status: resp.status, details: json };
+                }
+                return json;
+            } catch (e) {
+                if (e.message && e.status) throw e;
+                console.warn('sbRest network error:', e.message);
+                throw { message: e.message || 'Network error', status: 0, details: e };
+            }
+        }
+
+        // IMAGES defaults - page renders with these immediately
+        var IMAGES = {
             hero_bg: "images/hero-bg.png",
             hero_circle: "images/hero-circle.png",
             pain1: "images/pain-neck-shoulder.png",
@@ -35,97 +75,56 @@
             coach_yoga3: "images/coach-yoga3.png",
         };
 
-        // Content version to bust cache across browsers
-        var CONTENT_VERSION = 'v2_20260612';
+        // Load Supabase data AFTER page renders (non-blocking)
+        function loadSupabaseContent() {
+            // Load content + images
+            sbRest('yoga_content', 'GET', null, '?id=eq.1').then(function(rows) {
+                if (rows && rows.length > 0 && rows[0].data) {
+                    var custom = rows[0].data;
 
-        // Override IMAGES with persisted content values
-        // Priority: content.json (server-side, shared across browsers) > localStorage (per-browser)
-        (function () {
-            var custom = JSON.parse(localStorage.getItem('yoga_content') || '{}');
-            // Check version — if stale, clear old content so fresh defaults apply
-            var savedVersion = localStorage.getItem('yoga_content_version');
-            if (savedVersion && savedVersion !== CONTENT_VERSION) {
-                localStorage.removeItem('yoga_content');
-                localStorage.setItem('yoga_content_version', CONTENT_VERSION);
-                custom = {};
-            } else if (!savedVersion) {
-                localStorage.setItem('yoga_content_version', CONTENT_VERSION);
-            }
-            Object.keys(custom).forEach(function (key) {
-                // Handle img_* prefixed keys
-                if (key.startsWith('img_')) {
-                    var imgKey = key.replace('img_', '');
-                    IMAGES[imgKey] = custom[key];
-                }
-                // Handle non-prefixed image keys like hero_bg, quote_bg
-                else if (key === 'hero_bg' || key === 'quote_bg') {
-                    IMAGES[key] = custom[key];
-                }
-            });
-
-            // Also try to load from content.json (server-side, shared across browsers)
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', 'content.json?v=' + CONTENT_VERSION, true);
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    try {
-                        var serverData = JSON.parse(xhr.responseText);
-                        if (serverData && Object.keys(serverData).length > 0) {
-                            Object.keys(serverData).forEach(function (key) {
-                                if (key.startsWith('img_')) {
-                                    var imgKey = key.replace('img_', '');
-                                    IMAGES[imgKey] = serverData[key];
-                                } else if (key === 'hero_bg' || key === 'quote_bg') {
-                                    IMAGES[key] = serverData[key];
-                                }
-                            });
-                            // Re-apply images after server data loaded
-                            applyImages();
-                            // Also update text content
-                            applyServerText(serverData);
+                    // Override images
+                    Object.keys(custom).forEach(function (key) {
+                        if (key.startsWith('img_')) {
+                            var imgKey = key.replace('img_', '');
+                            IMAGES[imgKey] = custom[key];
+                        } else if (key === 'hero_bg' || key === 'quote_bg') {
+                            IMAGES[key] = custom[key];
                         }
-                    } catch (e) { /* ignore parse errors */ }
-                }
-            };
-            xhr.send();
-        })();
+                    });
+                    if (typeof applyImages === 'function') applyImages();
 
-        // Load Site Settings (logo, title, music) from localStorage
-        (function () {
-            var settings = JSON.parse(localStorage.getItem('yoga_content') || '{}');
+                    // Override text content
+                    if (typeof applyServerText === 'function') applyServerText(custom);
 
-            // Update page title
-            if (settings.site_title) {
-                document.title = settings.site_title;
-            }
+                    // Update page title
+                    if (custom.site_title) document.title = custom.site_title;
 
-            // Update logo (image and text)
-            if (settings.site_logo || settings.site_logo_image) {
-                setTimeout(function () {
-                    var logoEl = document.querySelector('.nav-logo');
-                    if (logoEl) {
-                        var logoHTML = '';
-
-                        // Add logo image if available
-                        if (settings.site_logo_image) {
-                            logoHTML += '<img src="' + settings.site_logo_image + '" alt="Logo" style="height: 28px; width: auto; border-radius: 50%;">';
-                        } else {
-                            // Keep the ☯ icon if no image
-                            logoHTML += '<div class="nav-logo-icon">☯</div>';
+                    // Update logo
+                    if (custom.site_logo || custom.site_logo_image) {
+                        var logoEl = document.querySelector('.nav-logo');
+                        if (logoEl) {
+                            var logoHTML = '';
+                            if (custom.site_logo_image) {
+                                logoHTML += '<img src="' + custom.site_logo_image + '" alt="Logo" style="height: 28px; width: auto; border-radius: 50%;">';
+                            } else {
+                                logoHTML += '<div class="nav-logo-icon">☯</div>';
+                            }
+                            logoHTML += ' ' + (custom.site_logo || 'YogaCoach');
+                            logoEl.innerHTML = logoHTML;
                         }
-
-                        // Add logo text
-                        logoHTML += ' ' + (settings.site_logo || 'YogaCoach');
-                        logoEl.innerHTML = logoHTML;
                     }
-                }, 100);
-            }
 
-            // Load background music
-            if (settings.site_music_url && settings.site_music_url.trim()) {
-                window.musicURL = settings.site_music_url;
-            }
-        })();
+                    // Load background music
+                    if (custom.site_music_url && custom.site_music_url.trim()) {
+                        window.musicURL = custom.site_music_url;
+                    }
+
+                    console.log('Supabase content loaded OK');
+                }
+            }).catch(function(e) {
+                console.warn('Supabase content load skipped:', e.message);
+            });
+        }
     </script>
 
     <style>
@@ -1941,6 +1940,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Apply default images immediately
             Object.keys(IMAGES).forEach(function (key) {
                 var el = document.getElementById('img-' + key);
                 if (el && IMAGES[key]) el.src = IMAGES[key];
@@ -1953,9 +1953,13 @@
             var detectedLang = savedLang || ((navigator.language || 'vi').toLowerCase().startsWith('vi') ? 'vi' : 'en');
             setLang(detectedLang);
             initFormLogic();
+
+            // Load Supabase content AFTER page renders (non-blocking)
+            // If Supabase is down, page still shows with defaults
+            setTimeout(loadSupabaseContent, 500);
         });
 
-        // Re-apply images after async content.json load
+        // Re-apply images after content load
         function applyImages() {
             Object.keys(IMAGES).forEach(function (key) {
                 var el = document.getElementById('img-' + key);
@@ -2038,7 +2042,7 @@
 
         function initFormLogic() {
             // Registration Form Submission
-            document.getElementById('registerForm').addEventListener('submit', function (e) {
+            document.getElementById('registerForm').addEventListener('submit', async function (e) {
                 e.preventDefault();
 
                 var name = document.getElementById('regName').value.trim();
@@ -2066,17 +2070,26 @@
 
                 if (!isValid) return;
 
-                var entry = {
-                    date: new Date().toLocaleString(),
-                    name: name,
-                    email: email,
-                    phone: phone || '-',
-                    query: query || '-'
-                };
-
-                var submissions = JSON.parse(localStorage.getItem('yoga_subs') || '[]');
-                submissions.push(entry);
-                localStorage.setItem('yoga_subs', JSON.stringify(submissions));
+                // Submit to Supabase via REST
+                try {
+                    console.log('Submitting registration to Supabase...', { name: name, email: email });
+                    await sbRest('yoga_subs', 'POST', {
+                        name: name,
+                        email: email,
+                        phone: phone || '-',
+                        query: query || '-'
+                    }, null);
+                    console.log('Registration saved to Supabase!');
+                } catch (err) {
+                    console.error('Submission failed:', err);
+                    var errMsg = err.message || JSON.stringify(err);
+                    if (errMsg.indexOf('Failed to fetch') !== -1 || errMsg.indexOf('Cannot reach') !== -1) {
+                        alert('Cannot connect to server. Please check your internet connection and try again later.');
+                    } else {
+                        alert('Registration failed:\n' + errMsg);
+                    }
+                    return; // Don't show success if save failed
+                }
 
                 // Show Success Message
                 document.getElementById('formSuccess').style.display = 'block';
@@ -2169,21 +2182,25 @@
             applyDict(lang);
         }
 
-        // Override BOTH dictionaries with persisted content from admin
-        // So edits reflect in both VN and EN views
-        (function () {
-            var custom = JSON.parse(localStorage.getItem('yoga_content') || '{}');
-            Object.keys(dict).forEach(function (lang) {
-                Object.keys(custom).forEach(function (key) {
-                    if (!key.startsWith('img_') && dict[lang][key] !== undefined) {
-                        dict[lang][key] = custom[key];
-                    }
-                });
-            });
-            applyDict();
+        // Override BOTH dictionaries with persisted content from Supabase
+        (async function () {
+            try {
+                var rows = await sbRest('yoga_content', 'GET', null, '?id=eq.1');
+                if (rows && rows.length > 0 && rows[0].data) {
+                    var custom = rows[0].data;
+                    Object.keys(dict).forEach(function (lang) {
+                        Object.keys(custom).forEach(function (key) {
+                            if (!key.startsWith('img_') && dict[lang][key] !== undefined) {
+                                dict[lang][key] = custom[key];
+                            }
+                        });
+                    });
+                    applyDict();
+                }
+            } catch (e) { console.error('Supabase dict load error:', e); }
         })();
 
-        // Apply server-side content.json overrides to BOTH dictionaries
+        // Apply Supabase content overrides to BOTH dictionaries
         function applyServerText(serverData) {
             Object.keys(dict).forEach(function (lang) {
                 Object.keys(serverData).forEach(function (key) {

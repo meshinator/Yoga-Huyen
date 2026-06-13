@@ -8,7 +8,149 @@
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YogaCoach — Admin Dashboard</title>
-    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // No hardcoded credentials — using Supabase Auth
+
+        // Supabase
+        var SUPABASE_URL = 'https://ipuxdhfkclrjmpsqbeuy.supabase.co';
+        var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwdXhkaGZrY2xyam1wc3FiZXV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjMzMjAsImV4cCI6MjA5NjkzOTMyMH0.91_R8Zq6lIEseDezlrB5Iz-JQhNx4nElceKo2jFlbMM';
+        var supabaseClient = null;
+        try {
+            if (window.supabase && window.supabase.createClient) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
+                });
+                console.log('Supabase client initialized with Auth');
+            } else {
+                console.error('Supabase JS library not loaded');
+            }
+        } catch (e) {
+            console.error('Supabase init error:', e);
+        }
+
+        // Cloudinary
+        var CLOUDINARY_CLOUD_NAME = 'djxwmdhkx';
+        var CLOUDINARY_UPLOAD_PRESET = 'Umesh_Nepal';
+        var CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/' + 'djxwmdhkx' + '/image/upload';
+
+        // Direct REST helper - uses fetch directly to Supabase REST API
+        async function sbRest(table, method, body, query) {
+            var url = SUPABASE_URL + '/rest/v1/' + table;
+            if (query) url += query;
+            var headers = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                'Content-Type': 'application/json'
+            };
+            // Only add Prefer header when needed (avoid sending undefined)
+            if (method === 'POST' || method === 'PATCH') {
+                headers['Prefer'] = 'return=representation';
+            } else if (method === 'DELETE') {
+                headers['Prefer'] = 'return=representation';
+            }
+            var opts = {
+                method: method,
+                headers: headers
+            };
+            if (body) opts.body = JSON.stringify(body);
+            try {
+                var resp = await fetch(url, opts);
+                // Handle empty responses (DELETE can return empty body)
+                var text = await resp.text();
+                var json = text ? JSON.parse(text) : null;
+                if (!resp.ok) {
+                    var errMsg = (json && (json.message || json.msg || json.code)) || resp.statusText || 'Unknown error';
+                    throw { message: errMsg, status: resp.status, details: json };
+                }
+                return json;
+            } catch (e) {
+                // If it's already our custom error, rethrow it
+                if (e.message && e.status) throw e;
+                // Network-level errors (CORS, DNS, paused project, etc.)
+                if (e.name === 'TypeError' && e.message === 'Failed to fetch') {
+                    throw {
+                        message: 'Failed to fetch - Cannot reach Supabase. Possible causes:\n' +
+                            '1. Your Supabase project may be PAUSED (check dashboard at supabase.com)\n' +
+                            '2. Network/CORS issue (try opening ' + SUPABASE_URL + ' in a new tab)\n' +
+                            '3. Wrong Supabase URL',
+                        status: 0,
+                        details: e
+                    };
+                }
+                throw { message: e.message || 'Unknown fetch error', status: 0, details: e };
+            }
+        }
+
+        // Test Supabase connection - can be called from console or UI
+        window.testSupabaseConnection = async function() {
+            console.log('=== SUPABASE CONNECTION TEST ===');
+            console.log('URL:', SUPABASE_URL);
+            console.log('Anon Key (first 20 chars):', SUPABASE_ANON_KEY.substring(0, 20) + '...');
+            
+            // Test 1: Basic connectivity
+            try {
+                var resp = await fetch(SUPABASE_URL + '/rest/v1/', {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                    }
+                });
+                console.log('Test 1 - Basic fetch: Status', resp.status, resp.statusText);
+            } catch(e) {
+                console.error('Test 1 - Basic fetch FAILED:', e.message);
+                console.error('>>> Your Supabase project may be PAUSED. Go to https://supabase.com/dashboard and check.');
+                alert('Cannot reach Supabase at ' + SUPABASE_URL + '\n\nError: ' + e.message + '\n\nPossible fixes:\n1. Check if your Supabase project is paused at supabase.com/dashboard\n2. Verify the URL is correct\n3. Try opening ' + SUPABASE_URL + ' in a new browser tab');
+                return;
+            }
+            
+            // Test 2: yoga_content table
+            try {
+                var rows = await sbRest('yoga_content', 'GET', null, '?select=id&limit=1');
+                console.log('Test 2 - yoga_content: OK', JSON.stringify(rows));
+            } catch(e) {
+                console.error('Test 2 - yoga_content FAILED:', e.message);
+            }
+            
+            // Test 3: yoga_subs table
+            try {
+                var rows = await sbRest('yoga_subs', 'GET', null, '?select=id&limit=1');
+                console.log('Test 3 - yoga_subs: OK', JSON.stringify(rows));
+            } catch(e) {
+                console.error('Test 3 - yoga_subs FAILED:', e.message);
+            }
+            
+            // Test 4: Write test (insert + delete)
+            try {
+                await sbRest('yoga_content', 'PATCH', { data: { _test: true }, updated_at: new Date().toISOString() }, '?id=eq.1');
+                console.log('Test 4 - Write test: OK');
+            } catch(e) {
+                // Try insert if update fails (no row yet)
+                try {
+                    await sbRest('yoga_content', 'POST', { id: 1, data: { _test: true }, updated_at: new Date().toISOString() }, null);
+                    console.log('Test 4 - Write test (insert): OK');
+                } catch(e2) {
+                    console.error('Test 4 - Write test FAILED:', e2.message);
+                }
+            }
+            
+            console.log('=== TEST COMPLETE ===');
+            alert('Connection test complete! Check browser console (F12) for details.');
+        };
+
+        // Test Supabase connection on load
+        setTimeout(async function() {
+            try {
+                var result = await sbRest('yoga_content', 'GET', null, '?select=id&limit=1');
+                console.log('SUPABASE REST OK - yoga_content accessible');
+            } catch(e) { console.error('SUPABASE REST TEST FAILED (yoga_content):', e.message); }
+            try {
+                var result = await sbRest('yoga_subs', 'GET', null, '?select=id&limit=1');
+                console.log('SUPABASE REST OK - yoga_subs accessible');
+            } catch(e) { console.error('SUPABASE REST TEST FAILED (yoga_subs):', e.message); }
+        }, 2000);
+    </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Ibarra+Real+Nova:ital,wght@0,400;0,700;1,400;1,700&display=swap"
         rel="stylesheet">
@@ -1535,17 +1677,22 @@
                 <div class="login-logo-text">YogaCoach</div>
             </div>
             <p class="login-subtitle">Admin Dashboard — Sign in to manage your website</p>
-            <div class="login-error" id="loginError"><i class="fas fa-exclamation-circle"></i> Invalid credentials.
+            <div class="login-error" id="loginError"><i class="fas fa-exclamation-circle"></i> Invalid email or password.
             </div>
             <form id="loginForm">
-                <div class="form-group"><label>Username</label>
-                    <div class="input-wrap"><i class="fas fa-user"></i><input type="text" id="loginUser"></div>
+                <div class="form-group"><label>Email</label>
+                    <div class="input-wrap"><i class="fas fa-envelope"></i><input type="email" id="loginUser" placeholder="admin@example.com"></div>
                 </div>
                 <div class="form-group"><label>Password</label>
                     <div class="input-wrap"><i class="fas fa-lock"></i><input type="password" id="loginPass"></div>
                 </div>
                 <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt"></i>&nbsp; Sign In</button>
+                <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+                    <button type="button" class="btn-login" onclick="testConnectionAndAuth()" style="flex:1;background:rgba(124,179,66,0.2);border-color:rgba(124,179,66,0.4);color:#cbd8b3;font-size:0.75rem;"><i class="fas fa-plug"></i>&nbsp; Test & Debug</button>
+                    <button type="button" class="btn-login" onclick="signupAdmin()" style="flex:1;background:rgba(212,168,83,0.2);border-color:rgba(212,168,83,0.4);color:#d4a853;font-size:0.75rem;"><i class="fas fa-user-plus"></i>&nbsp; Create Account</button>
+                </div>
             </form>
+            <div id="debugInfo" style="display:none;margin-top:1rem;padding:0.75rem;background:#1a1a2e;border-radius:8px;font-size:0.75rem;color:#8f8;font-family:monospace;white-space:pre-wrap;max-height:200px;overflow-y:auto;"></div>
         </div>
     </div>
 
@@ -1565,6 +1712,8 @@
                     <div class="sidebar-avatar">A</div>
                     <div class="sidebar-user-info"><strong>Admin</strong><span>Super Administrator</span></div>
                 </div>
+                <button class="btn-logout" onclick="openChangePassword()" style="margin-bottom:0.5rem;background:rgba(212,168,83,0.15);border-color:rgba(212,168,83,0.4);color:rgba(212,168,83,0.9);"><i class="fas fa-key"></i> Change Password</button>
+                <button class="btn-logout" onclick="testSupabaseConnection()" style="margin-bottom:0.5rem;background:rgba(124,179,66,0.15);border-color:rgba(124,179,66,0.4);color:rgba(203,216,179,0.8);"><i class="fas fa-plug"></i> Test Connection</button>
                 <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
             </div>
         </aside>
@@ -1685,20 +1834,44 @@
             </div>
         </div>
     </div>
+    <!-- Change Password Modal -->
+    <div class="modal-overlay" id="changePasswordModal">
+        <div class="modal-box" style="max-width:420px;">
+            <button class="modal-close" onclick="closeModal('changePasswordModal')">&times;</button>
+            <div class="confirm-body" style="text-align:left;">
+                <div class="confirm-icon" style="background:rgba(212,168,83,0.15);color:#d4a853;"><i class="fas fa-key"></i></div>
+                <h3 style="margin-bottom:0.5rem;">Change Password</h3>
+                <p style="color:var(--text-light);margin-bottom:1rem;font-size:0.9rem;">Update your admin login password. You'll stay signed in.</p>
+                <div class="form-group" style="margin-bottom:0.75rem;"><label style="font-size:0.85rem;color:var(--text-light);">New Password (min 6 chars)</label>
+                    <div class="input-wrap"><i class="fas fa-lock"></i><input type="password" id="newPassword" placeholder="Enter new password"></div>
+                </div>
+                <div class="form-group" style="margin-bottom:1rem;"><label style="font-size:0.85rem;color:var(--text-light);">Confirm New Password</label>
+                    <div class="input-wrap"><i class="fas fa-lock"></i><input type="password" id="confirmPassword" placeholder="Re-enter new password"></div>
+                </div>
+                <div id="changePasswordError" style="display:none;color:var(--danger);font-size:0.85rem;margin-bottom:0.75rem;"></div>
+                <div class="confirm-actions">
+                    <button class="btn-confirm-cancel" onclick="closeModal('changePasswordModal')">Cancel</button>
+                    <button class="btn-confirm-delete" id="changePasswordBtn" onclick="handleChangePassword()" style="background:var(--warm-gold);">Update Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
         (function () {
             var ITEMS_PER_PAGE = 10, currentPage = 1, filteredData = [], currentView = 'overview';
             var isLoggedIn = sessionStorage.getItem('yoga_admin') === 'true';
+            var _subsData = [];
+            var _contentData = {};
 
             var contentConfig = [
                 {
                     id: 'settings', title: 'Site Settings', icon: 'fa-cog', fields: [
                         { key: 'site_logo', type: 'text', label: 'Logo Text', default: 'YogaCoach' },
                         { key: 'site_logo_image', type: 'file', label: 'Logo Image (Upload or Image URL)', default: '' },
-                        { key: 'site_title', type: 'text', label: 'Page Title', default: 'Yoga & Coaching – Trở về với chính mình' },
-                        { key: 'site_music_url', type: 'file', label: 'Background Music (MP3, max 10MB)', default: '' }
+                        { key: 'site_title', type: 'text', label: 'Page Title', default: 'Yoga & Coaching – Trở về với chính mình' }
                     ]
                 },
                 {
@@ -1849,51 +2022,373 @@
                 document.querySelectorAll('.modal-overlay').forEach(function (ov) { ov.addEventListener('click', function (e) { if (e.target === ov) closeModal(ov.id); }); });
             });
 
-            // Client-side login handler (credentials from config.js)
-            window.handleLogin = function () {
-                var username = document.getElementById('loginUser').value.trim();
+            // Debug helper: show debug panel
+            function showDebug(msg) {
+                var el = document.getElementById('debugInfo');
+                if (!el) return;
+                el.style.display = 'block';
+                el.textContent += msg + '\n';
+                el.scrollTop = el.scrollHeight;
+            }
+            function clearDebug() {
+                var el = document.getElementById('debugInfo');
+                if (!el) return;
+                el.textContent = '';
+                el.style.display = 'none';
+            }
+
+            // Test Connection & Auth — full diagnostic
+            window.testConnectionAndAuth = async function () {
+                clearDebug();
+                showDebug('=== SUPABASE CONNECTION & AUTH DEBUG ===');
+                showDebug('Timestamp: ' + new Date().toISOString());
+
+                // 1. Check Supabase JS library loaded
+                showDebug('\n--- Step 1: Supabase JS Library ---');
+                if (window.supabase && window.supabase.createClient) {
+                    showDebug('OK: supabase-js library loaded');
+                } else {
+                    showDebug('FAIL: supabase-js library NOT loaded! Check network/CDN.');
+                    return;
+                }
+
+                // 2. Check client initialized
+                showDebug('\n--- Step 2: Supabase Client ---');
+                if (supabaseClient) {
+                    showDebug('OK: supabaseClient initialized');
+                    showDebug('URL: ' + SUPABASE_URL);
+                    showDebug('Anon Key (first 20): ' + SUPABASE_ANON_KEY.substring(0, 20) + '...');
+                } else {
+                    showDebug('FAIL: supabaseClient is null!');
+                    return;
+                }
+
+                // 3. Test REST API connection (check actual tables: yoga_subs, yoga_content)
+                showDebug('\n--- Step 3: REST API Test ---');
+                try {
+                    var resp = await fetch(SUPABASE_URL + '/rest/v1/yoga_subs?select=count&limit=1', {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                        }
+                    });
+                    showDebug('yoga_subs table status: ' + resp.status + ' ' + resp.statusText);
+                    if (resp.ok) {
+                        var data = await resp.json();
+                        showDebug('OK: yoga_subs reachable, rows: ' + JSON.stringify(data));
+                    } else {
+                        var errText = await resp.text();
+                        showDebug('FAIL: yoga_subs error: ' + errText);
+                    }
+                } catch (e) {
+                    showDebug('FAIL: REST API fetch error: ' + e.message);
+                }
+                try {
+                    var resp2 = await fetch(SUPABASE_URL + '/rest/v1/yoga_content?select=count&limit=1', {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                        }
+                    });
+                    showDebug('yoga_content table status: ' + resp2.status + ' ' + resp2.statusText);
+                    if (resp2.ok) {
+                        var data2 = await resp2.json();
+                        showDebug('OK: yoga_content reachable, rows: ' + JSON.stringify(data2));
+                    } else {
+                        showDebug('FAIL: yoga_content error: ' + await resp2.text());
+                    }
+                } catch (e2) {
+                    showDebug('FAIL: yoga_content fetch error: ' + e2.message);
+                }
+
+                // 4. Test Auth endpoint directly (without signing in)
+                showDebug('\n--- Step 4: Auth Endpoint Test ---');
+                try {
+                    var authResp = await fetch(SUPABASE_URL + '/auth/v1/settings', {
+                        headers: { 'apikey': SUPABASE_ANON_KEY }
+                    });
+                    showDebug('Auth settings status: ' + authResp.status);
+                    if (authResp.ok) {
+                        var authSettings = await authResp.json();
+                        showDebug('Auth settings: ' + JSON.stringify(authSettings));
+                    } else {
+                        showDebug('Auth settings error: ' + await authResp.text());
+                    }
+                } catch (e) {
+                    showDebug('Auth endpoint error: ' + e.message);
+                }
+
+                // 5. Try login with whatever is in the fields right now
+                showDebug('\n--- Step 5: Login Attempt ---');
+                var email = document.getElementById('loginUser').value.trim();
+                var password = document.getElementById('loginPass').value;
+                showDebug('Email field: "' + email + '"');
+                showDebug('Password field: "' + (password ? password.length + ' chars' : 'EMPTY') + '"');
+                if (!email || !password) {
+                    showDebug('SKIP: Enter email & password first, then click Test again.');
+                    return;
+                }
+
+                try {
+                    showDebug('Calling signInWithPassword...');
+                    var result = await supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    showDebug('Full result: ' + JSON.stringify({
+                        error: result.error ? { message: result.error.message, status: result.error.status, name: result.error.name } : null,
+                        user: result.data.user ? { id: result.data.user.id, email: result.data.user.email, confirmed: result.data.user.email_confirmed_at, created: result.data.user.created_at } : null,
+                        session: result.data.session ? 'present (token received)' : 'null'
+                    }, null, 2));
+
+                    if (result.error) {
+                        showDebug('\nLOGIN FAILED!');
+                        showDebug('Error message: ' + result.error.message);
+                        showDebug('Error status: ' + result.error.status);
+                        if (result.error.message.indexOf('Invalid login credentials') !== -1) {
+                            showDebug('\nThis means: The email/password do NOT match any user in Supabase.');
+                            showDebug('FIX: Go to Supabase Dashboard → Authentication → Users');
+                            showDebug('  - Delete existing user if unsure of password');
+                            showDebug('  - Click "Add user" → "Create new user"');
+                            showDebug('  - Enter EXACT same email & a known password');
+                            showDebug('  - CHECK "Auto Confirm User"');
+                            showDebug('  - Then try signing in with those exact credentials');
+                        }
+                    } else if (result.data.user) {
+                        showDebug('\nLOGIN SUCCESS! User: ' + result.data.user.email);
+                    } else {
+                        showDebug('\nNo error but no user — possible email confirmation needed');
+                    }
+                } catch (err) {
+                    showDebug('EXCEPTION during login: ' + err.message);
+                    showDebug('Stack: ' + (err.stack || '').substring(0, 200));
+                }
+            };
+
+            // Sign up a new admin user (for first-time setup)
+            window.signupAdmin = async function () {
+                var email = document.getElementById('loginUser').value.trim();
                 var password = document.getElementById('loginPass').value;
                 var errorEl = document.getElementById('loginError');
+                clearDebug();
 
-                if (!username || !password) {
+                if (!email || !password) {
+                    errorEl.textContent = 'Enter email & password first, then click Create Account.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+                if (password.length < 6) {
+                    errorEl.textContent = 'Password must be at least 6 characters.';
                     errorEl.style.display = 'block';
                     return;
                 }
 
-                // Validate against CONFIG from config.js
-                if (username === CONFIG.ADMIN_USERNAME && password === CONFIG.ADMIN_PASSWORD) {
-                    isLoggedIn = true;
-                    sessionStorage.setItem('yoga_admin', 'true');
+                if (!supabaseClient || !supabaseClient.auth) {
+                    errorEl.textContent = 'Supabase not connected.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                try {
                     errorEl.style.display = 'none';
-                    document.getElementById('loginUser').value = '';
-                    document.getElementById('loginPass').value = '';
-                    showDashboard();
-                } else {
+                    showDebug('Creating account for: ' + email + '...');
+
+                    var result = await supabaseClient.auth.signUp({
+                        email: email,
+                        password: password
+                    });
+
+                    showDebug('Signup result: ' + JSON.stringify({
+                        error: result.error ? result.error.message : null,
+                        user: result.data.user ? { id: result.data.user.id, email: result.data.user.email, confirmed: result.data.user.email_confirmed_at } : null,
+                        session: result.data.session ? 'present' : 'null'
+                    }, null, 2));
+
+                    if (result.error) {
+                        var msg = result.error.message;
+                        if (msg.indexOf('already registered') !== -1 || msg.indexOf('already been registered') !== -1) {
+                            errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> This email is already registered. Try signing in instead, or use a different email.<br><br>If you forgot the password, go to Supabase Dashboard → Authentication → Users → delete this user → recreate it.';
+                        } else {
+                            errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + msg;
+                        }
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+
+                    // Check if auto-confirmed (session returned) or needs email confirmation
+                    if (result.data.session && result.data.user) {
+                        // Auto-confirmed! User is logged in
+                        isLoggedIn = true;
+                        errorEl.style.display = 'none';
+                        clearDebug();
+                        showDashboard();
+                    } else if (result.data.user && !result.data.session) {
+                        // Email confirmation required — but we can't bypass from client
+                        errorEl.innerHTML = '<i class="fas fa-info-circle" style="color:#d4a853"></i> Account created! However, Supabase requires email confirmation.<br><br><b>Quick fix:</b> Go to Supabase Dashboard → Authentication → Users → find <b>' + esc(email) + '</b> → click "..." → <b>"Confirm user"</b><br><br>Then come back and click Sign In.';
+                        errorEl.style.display = 'block';
+                    } else {
+                        errorEl.innerHTML = '<i class="fas fa-check-circle" style="color:#7cb342"></i> Account created! Try signing in now.';
+                        errorEl.style.display = 'block';
+                    }
+                } catch (err) {
+                    console.error('Signup error:', err);
+                    errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Signup error: ' + (err.message || 'Unknown error');
                     errorEl.style.display = 'block';
                 }
             };
 
-            // Removed API-based verification for local setup
-            window.verifyAuthStatus = function () {
-                // Check if already logged in via sessionStorage
-                if (sessionStorage.getItem('yoga_admin') === 'true') {
+            // Supabase Auth login handler
+            window.handleLogin = async function () {
+                clearDebug();
+                var email = document.getElementById('loginUser').value.trim();
+                var password = document.getElementById('loginPass').value;
+                var errorEl = document.getElementById('loginError');
+
+                if (!email || !password) {
+                    errorEl.textContent = 'Please enter email and password.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                // Check if Supabase client is available
+                if (!supabaseClient || !supabaseClient.auth) {
+                    errorEl.textContent = 'Supabase not connected. Click "Test Connection & Debug" for details.';
+                    errorEl.style.display = 'block';
+                    console.error('supabaseClient not initialized');
+                    return;
+                }
+
+                try {
+                    console.log('Attempting login with:', email);
+                    var result = await supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+
+                    console.log('Auth result:', JSON.stringify({ error: result.error ? result.error.message : null, user: result.data.user ? result.data.user.email : null }));
+
+                    if (result.error) {
+                        var msg = result.error.message;
+                        // Make common errors more user-friendly
+                        if (msg.indexOf('Invalid login credentials') !== -1) {
+                            msg = 'Invalid email or password.\n\nFix: Go to Supabase Dashboard → Authentication → Users\n→ Delete the user → Recreate with "Auto Confirm User" CHECKED\n→ Use that exact email & password here.';
+                        } else if (msg.indexOf('Email not confirmed') !== -1) {
+                            msg = 'Email not confirmed. Go to Supabase Dashboard → Authentication → Users → find your user → click "..." → "Confirm user"';
+                        }
+                        errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + msg.replace(/\n/g, '<br>');
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+
+                    if (!result.data.user) {
+                        errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Login failed — no user returned. Check if email confirmation is required in Supabase Auth settings.';
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+
+                    // Login successful
                     isLoggedIn = true;
+                    errorEl.style.display = 'none';
+                    document.getElementById('loginUser').value = '';
+                    document.getElementById('loginPass').value = '';
+                    clearDebug();
                     showDashboard();
+                } catch (err) {
+                    console.error('Login exception:', err);
+                    errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Login error: ' + (err.message || 'Unknown error');
+                    errorEl.style.display = 'block';
                 }
             };
 
-            function showDashboard() { document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('dashboard').classList.add('active'); refreshData(); }
-            window.logout = function () {
+            // Check if already logged in via Supabase Auth session
+            window.verifyAuthStatus = async function () {
+                try {
+                    var { data } = await supabaseClient.auth.getSession();
+                    if (data.session) {
+                        isLoggedIn = true;
+                        showDashboard();
+                    }
+                } catch (e) {
+                    console.warn('Auth session check failed:', e);
+                }
+            };
+
+            async function showDashboard() { document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('dashboard').classList.add('active'); await loadSubsFromSupabase(); await loadContentFromSupabase(); refreshData(); }
+            window.logout = async function () {
+                try {
+                    await supabaseClient.auth.signOut();
+                } catch (e) {
+                    console.warn('Sign out error:', e);
+                }
                 isLoggedIn = false;
-                sessionStorage.removeItem('yoga_admin');
                 document.getElementById('loginScreen').classList.remove('hidden');
                 document.getElementById('dashboard').classList.remove('active');
                 document.getElementById('loginUser').value = '';
                 document.getElementById('loginPass').value = '';
                 showToast('Logged out successfully', 'success');
             };
-            function getData() { return JSON.parse(localStorage.getItem('yoga_subs') || '[]'); }
-            window.refreshData = function () { switchView(currentView); showToast('Data refreshed', 'success'); };
+
+            // Change Password
+            window.openChangePassword = function () {
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                document.getElementById('changePasswordError').style.display = 'none';
+                openModal('changePasswordModal');
+            };
+
+            window.handleChangePassword = async function () {
+                var newPass = document.getElementById('newPassword').value;
+                var confirmPass = document.getElementById('confirmPassword').value;
+                var errorEl = document.getElementById('changePasswordError');
+
+                if (!newPass || newPass.length < 6) {
+                    errorEl.textContent = 'Password must be at least 6 characters.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+                if (newPass !== confirmPass) {
+                    errorEl.textContent = 'Passwords do not match.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    var result = await supabaseClient.auth.updateUser({ password: newPass });
+                    if (result.error) {
+                        errorEl.textContent = result.error.message;
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+                    closeModal('changePasswordModal');
+                    showToast('Password updated successfully!', 'success');
+                } catch (err) {
+                    errorEl.textContent = 'Error: ' + (err.message || 'Unknown error');
+                    errorEl.style.display = 'block';
+                }
+            };
+
+            function getData() { return _subsData; }
+
+            async function loadSubsFromSupabase() {
+                try {
+                    var rows = await sbRest('yoga_subs', 'GET', null, '?order=created_at.asc');
+                    _subsData = (rows || []).map(function(s) {
+                        return { _id: s.id, date: s.created_at, name: s.name, email: s.email, phone: s.phone || '-', query: s.query || '-' };
+                    });
+                } catch (e) { console.error('loadSubs error:', e); _subsData = []; }
+            }
+
+            async function loadContentFromSupabase() {
+                try {
+                    var rows = await sbRest('yoga_content', 'GET', null, '?id=eq.1');
+                    if (rows && rows.length > 0 && rows[0].data) {
+                        _contentData = rows[0].data;
+                    } else {
+                        _contentData = {};
+                    }
+                } catch (e) { console.error('loadContent error:', e); _contentData = {}; }
+            }
+            window.refreshData = async function () { await loadSubsFromSupabase(); switchView(currentView); showToast('Data refreshed', 'success'); };
 
             function switchView(view) {
                 currentView = view;
@@ -1918,14 +2413,34 @@
             var pdi = -1, pda = false;
             window.confirmDelete = function (i) { pdi = i; pda = false; var r = getData()[i]; document.getElementById('confirmTitle').textContent = 'Delete Registration?'; document.getElementById('confirmMsg').textContent = 'Remove "' + (r ? r.name : '') + '" permanently?'; document.getElementById('confirmBtn').onclick = execDel; openModal('confirmModal') }
             window.confirmClearAll = function () { pda = true; document.getElementById('confirmTitle').textContent = 'Clear All?'; document.getElementById('confirmMsg').textContent = 'Delete all ' + getData().length + ' registrations?'; document.getElementById('confirmBtn').onclick = execDel; openModal('confirmModal') }
-            function execDel() { if (pda) { localStorage.removeItem('yoga_subs'); showToast('Cleared', 'success') } else if (pdi >= 0) { var d = getData(); d.splice(pdi, 1); localStorage.setItem('yoga_subs', JSON.stringify(d)); showToast('Deleted', 'success') } pdi = -1; pda = false; closeModal('confirmModal'); closeModal('detailModal'); refreshData() }
+            async function execDel() {
+                try {
+                    if (pda) {
+                        // Delete all rows - need to delete one by one or use a filter that matches all
+                        var allRows = await sbRest('yoga_subs', 'GET', null, '?select=id');
+                        if (allRows && allRows.length > 0) {
+                            for (var i = 0; i < allRows.length; i++) {
+                                await sbRest('yoga_subs', 'DELETE', null, '?id=eq.' + allRows[i].id);
+                            }
+                        }
+                        showToast('Cleared', 'success');
+                    } else if (pdi >= 0) {
+                        var r = getData()[pdi];
+                        if (r && r._id) {
+                            await sbRest('yoga_subs', 'DELETE', null, '?id=eq.' + r._id);
+                        }
+                        showToast('Deleted', 'success');
+                    }
+                } catch (e) { console.error('Delete error:', e); showToast('Delete failed', 'error'); }
+                pdi = -1; pda = false; closeModal('confirmModal'); closeModal('detailModal'); refreshData();
+            }
 
             function renderAnalytics() { var data = getData(), wp = data.filter(function (d) { return d.phone && d.phone !== '-' }).length, wq = data.filter(function (d) { return d.query && d.query !== '-' }).length; document.getElementById('analyticsStats').innerHTML = statCard('fa-envelope', 'Submissions', data.length, 'All time') + statCard('fa-phone', 'With Phone', wp, Math.round(wp / Math.max(1, data.length) * 100) + '%') + statCard('fa-comment-dots', 'With Message', wq, Math.round(wq / Math.max(1, data.length) * 100) + '%') + statCard('fa-user-plus', 'Today', data.filter(function (d) { return new Date(d.date).toDateString() === new Date().toDateString() }).length, 'New'); var c = document.getElementById('dailyChart'), days = []; for (var i = 13; i >= 0; i--) { var d = new Date(); d.setDate(d.getDate() - i); days.push({ label: (d.getMonth() + 1) + '/' + d.getDate(), value: data.filter(function (r) { return new Date(r.date).toDateString() === d.toDateString() }).length }) } var max = Math.max.apply(null, days.map(function (d) { return d.value })) || 1; c.innerHTML = days.map(function (d) { return '<div class="mini-bar" style="height:' + Math.max(4, (d.value / max) * 100) + '%;background:linear-gradient(180deg,var(--vibrant-gold),var(--warm-gold))"><div class="mini-bar-value">' + (d.value || '') + '</div><div class="mini-bar-label">' + d.label + '</div></div>'; }).join(''); var cloud = document.getElementById('keywordCloud'), words = {}; data.forEach(function (r) { if (!r.query || r.query === '-') return; r.query.toLowerCase().replace(/[.,!?;:]/g, '').split(/\s+/).forEach(function (w) { if (w.length > 3) words[w] = (words[w] || 0) + 1 }) }); var sorted = Object.entries(words).sort(function (a, b) { return b[1] - a[1] }).slice(0, 15); cloud.innerHTML = sorted.length === 0 ? '<span style="color:var(--text-light)">No data</span>' : sorted.map(function (w) { return '<span style="font-size:' + (0.7 + (w[1] / (sorted[0][1] || 1)) * 0.8) + 'rem;color:var(--sage-dark);font-weight:' + (w[1] > 1 ? '700' : '500') + ';padding:.3rem .6rem;background:rgba(175,196,137,.1);border-radius:8px;">' + esc(w[0]) + ' (' + w[1] + ')</span>'; }).join('') }
 
             window.renderContentEditor = function () {
                 var container = document.getElementById('content-editor-grid');
                 container.innerHTML = '';
-                var saved = JSON.parse(localStorage.getItem('yoga_content') || '{}');
+                var saved = _contentData;
 
                 contentConfig.forEach(function (section) {
                     var imageFields = section.fields.filter(function (f) { return f.type === 'image'; });
@@ -1948,19 +2463,11 @@
                     if (fileFields.length > 0) {
                         html += '<div class="editor-text-fields">';
                         fileFields.forEach(function (field) {
-                            var fileType = field.key === 'site_music_url' ? 'music' : 'logo';
                             html += '<div class="editor-field text-field"><label>' + field.label + '</label>';
-                            if (fileType === 'music') {
-                                html += '<input type="file" id="file_' + field.key + '" class="file-input-hidden" accept=".mp3" onchange="handleFileUpload(\'' + field.key + '\')">';
-                                html += '<input type="text" id="c_' + field.key + '" placeholder="Paste MP3 URL or upload file" oninput="updateFileStatus(\'' + field.key + '\')">';
-                                html += '<div class="file-status" id="status_' + field.key + '"></div>';
-                                html += '<button class="btn-upload-file" onclick="openFilePicker(\'' + field.key + '\')">Upload MP3 File</button>';
-                            } else {
-                                html += '<input type="file" id="file_' + field.key + '" class="file-input-hidden" accept="image/png,image/jpeg" onchange="handleFileUpload(\'' + field.key + '\')">';
-                                html += '<input type="text" id="c_' + field.key + '" placeholder="Paste image URL or upload file" oninput="updateFileStatus(\'' + field.key + '\')">';
-                                html += '<div class="file-preview-small" id="prev_' + field.key + '"></div>';
-                                html += '<button class="btn-upload-file" onclick="openFilePicker(\'' + field.key + '\')">Upload Image</button>';
-                            }
+                            html += '<input type="file" id="file_' + field.key + '" class="file-input-hidden" accept="image/png,image/jpeg" onchange="handleFileUpload(\'' + field.key + '\')">';
+                            html += '<input type="text" id="c_' + field.key + '" placeholder="Paste image URL or upload file" oninput="updateFileStatus(\'' + field.key + '\')">';
+                            html += '<div class="file-preview-small" id="prev_' + field.key + '"></div>';
+                            html += '<button class="btn-upload-file" onclick="openFilePicker(\'' + field.key + '\')">Upload Image</button>';
                             html += '</div>';
                         });
                         html += '</div>';
@@ -2058,110 +2565,68 @@
             };
 
             function validateAndUploadFile(file, key) {
-                var isMusicFile = key === 'site_music_url';
-                var allowedTypes = isMusicFile ? ['audio/mpeg'] : ['image/png', 'image/jpeg'];
-                var maxSize = isMusicFile ? (5 * 1024 * 1024) : (5 * 1024 * 1024); // 5MB for both
-                var fileTypeMsg = isMusicFile ? 'Only MP3 audio files are supported' : 'Only PNG and JPEG images are supported';
-                var sizeMsg = isMusicFile ? 'Music file must be less than 5MB' : 'File size must be less than 5MB';
+                var allowedTypes = ['image/png', 'image/jpeg'];
+                var maxSize = 5 * 1024 * 1024; // 5MB
 
                 if (!allowedTypes.includes(file.type)) {
-                    showToast(fileTypeMsg, 'error');
+                    showToast('Only PNG and JPEG images are supported', 'error');
                     return;
                 }
 
                 if (file.size > maxSize) {
-                    showToast(sizeMsg, 'error');
+                    showToast('File size must be less than 5MB', 'error');
                     return;
                 }
 
-                if (isMusicFile) {
-                    // Upload music to server
-                    uploadMusicFile(file, key);
-                } else {
-                    // Keep image as Base64
-                    var reader = new FileReader();
-                    reader.onload = function (e) {
-                        var dataURL = e.target.result;
-                        var inputEl = document.getElementById('c_' + key);
-                        if (inputEl) {
-                            inputEl.value = dataURL;
-                            updateFileStatus(key);
-                            showToast('Image uploaded successfully', 'success');
-                        }
-                    };
-                    reader.onerror = function () {
-                        showToast('Failed to read file', 'error');
-                    };
-                    reader.readAsDataURL(file);
-                }
+                // Upload image to Cloudinary
+                uploadImageToCloudinary(file, key);
             }
 
-            window.uploadMusicFile = function (file, key) {
+            function uploadImageToCloudinary(file, key) {
+                showToast('Uploading image...', 'info');
                 var formData = new FormData();
-                formData.append('musicFile', file);
+                formData.append('file', file);
+                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-                fetch('/api/upload-music', {
+                fetch(CLOUDINARY_UPLOAD_URL, {
                     method: 'POST',
                     body: formData
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            var inputEl = document.getElementById('c_' + key);
-                            if (inputEl) {
-                                inputEl.value = data.url;
-                                updateFileStatus(key);
-                                showToast('Music uploaded successfully!', 'success');
-                            }
-                        } else {
-                            showToast('Error: ' + (data.error || 'Upload failed'), 'error');
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if (data.secure_url) {
+                        var inputEl = document.getElementById('c_' + key);
+                        if (inputEl) {
+                            inputEl.value = data.secure_url;
+                            updatePrev(key);
+                            updateFileStatus(key);
+                            showToast('Image uploaded to Cloudinary!', 'success');
                         }
-                    })
-                    .catch(error => {
-                        console.error('Upload error:', error);
-                        showToast('Failed to upload music file: ' + error.message, 'error');
-                    });
-            };
+                    } else {
+                        console.error('Cloudinary upload error:', data);
+                        showToast('Cloudinary upload failed: ' + (data.error && data.error.message || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Cloudinary upload failed:', err);
+                    showToast('Image upload failed: ' + err.message, 'error');
+                });
+            }
 
             window.updateFileStatus = function (key) {
                 var inputVal = document.getElementById('c_' + key).value;
-                var statusEl = document.getElementById('status_' + key);
                 var prevEl = document.getElementById('prev_' + key);
-                var isMusicFile = key === 'site_music_url';
 
-                if (isMusicFile) {
-                    if (statusEl) {
-                        if (inputVal) {
-                            if (inputVal.startsWith('/music/')) {
-                                // Show server file path
-                                statusEl.innerHTML = '<span style="color:var(--success); font-size:0.85rem;"><i class="fas fa-check-circle"></i> Music file: ' + inputVal.split('/').pop() + '</span>';
-                            } else if (inputVal.startsWith('data:audio')) {
-                                statusEl.innerHTML = '<span style="color:var(--success); font-size:0.85rem;"><i class="fas fa-check-circle"></i> Music file loaded</span>';
-                            } else if (inputVal) {
-                                statusEl.innerHTML = '<span style="color:var(--text-light); font-size:0.85rem;">URL: ' + inputVal.substring(0, 50) + '...</span>';
-                            } else {
-                                statusEl.innerHTML = '';
-                            }
-                        } else {
-                            statusEl.innerHTML = '';
-                        }
-                    }
-                } else {
-                    if (prevEl) {
-                        if (inputVal) {
-                            if (inputVal.startsWith('data:image')) {
-                                prevEl.innerHTML = '<img src="' + inputVal + '" alt="Logo preview" style="max-width:80px;max-height:80px;border-radius:8px;">';
-                            } else {
-                                prevEl.innerHTML = '<img src="' + inputVal + '" alt="Logo preview" style="max-width:80px;max-height:80px;border-radius:8px;" onerror="this.parentNode.innerHTML=\'<span style=color:var(--danger)>Invalid URL</span>\'">';
-                            }
-                        } else {
-                            prevEl.innerHTML = '';
-                        }
+                if (prevEl) {
+                    if (inputVal) {
+                        prevEl.innerHTML = '<img src="' + inputVal + '" alt="Logo preview" style="max-width:80px;max-height:80px;border-radius:8px;" onerror="this.parentNode.innerHTML=\'<span style=color:var(--danger)>Invalid URL</span>\'">';
+                    } else {
+                        prevEl.innerHTML = '';
                     }
                 }
             };
 
-            window.saveContent = function () {
+            window.saveContent = async function () {
                 var data = {};
                 contentConfig.forEach(function (section) {
                     section.fields.forEach(function (field) {
@@ -2169,15 +2634,44 @@
                         if (el) data[field.key] = el.value;
                     });
                 });
-                localStorage.setItem('yoga_content', JSON.stringify(data));
-                showToast('Content saved successfully!', 'success');
+                try {
+                    console.log('Saving to Supabase REST, data keys:', Object.keys(data));
+                    // Check if row exists
+                    var existing = await sbRest('yoga_content', 'GET', null, '?id=eq.1&select=id');
+                    if (existing && existing.length > 0) {
+                        // Update existing row
+                        await sbRest('yoga_content', 'PATCH', { data: data, updated_at: new Date().toISOString() }, '?id=eq.1');
+                    } else {
+                        // Insert new row
+                        await sbRest('yoga_content', 'POST', { id: 1, data: data, updated_at: new Date().toISOString() }, null);
+                    }
+                    _contentData = data;
+                    showToast('Content saved successfully!', 'success');
+                    console.log('Content saved OK to Supabase');
+                } catch (e) {
+                    console.error('Save content error:', e);
+                    var errMsg = e.message || JSON.stringify(e);
+                    if (errMsg.indexOf('Failed to fetch') !== -1 || e.status === 0) {
+                        errMsg = 'Cannot reach Supabase server. Please check:\n' +
+                            '1. Is your Supabase project active (not paused)? Go to supabase.com/dashboard\n' +
+                            '2. Can you open ' + SUPABASE_URL + ' in a new tab?\n' +
+                            '3. Run testSupabaseConnection() in console for details';
+                    }
+                    showToast('Save Error: ' + (e.message || 'Unknown').substring(0, 60), 'error');
+                    alert('Save Error:\n' + errMsg);
+                }
             };
 
-            window.resetContent = function () {
-                localStorage.removeItem('yoga_content');
-                localStorage.removeItem('yoga_content_version');
-                renderContentEditor();
-                showToast('Content reset to defaults', 'info');
+            window.resetContent = async function () {
+                try {
+                    await sbRest('yoga_content', 'DELETE', null, '?id=eq.1');
+                    _contentData = {};
+                    renderContentEditor();
+                    showToast('Content reset to defaults', 'info');
+                } catch (e) {
+                    console.error('Reset content error:', e);
+                    showToast('Failed to reset content', 'error');
+                }
             };
 
             window.exportCSV = function () { var data = getData(); if (!data.length) { showToast('No data', 'error'); return; } var csv = 'Date,Name,Email,Phone,Query\n'; data.forEach(function (r) { csv += '"' + (r.date || '') + '","' + (r.name || '') + '","' + (r.email || '') + '","' + (r.phone || '') + '","' + (r.query || '').replace(/"/g, '""') + '"\n' }); var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }); var link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'yoga_registrations_' + new Date().toISOString().slice(0, 10) + '.csv'; link.click(); URL.revokeObjectURL(link.href); showToast('Exported!', 'success'); };
