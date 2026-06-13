@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YogaCoach — Admin Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Ibarra+Real+Nova:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --sage-light: #cbd8b3;
+            --sage-mid: #afc489;
+            --sage-dark: #3f5714;
+            --warm-gold: #a89672;
+            --cream: #f5f2ec;
+            --cream-dark: #ede8de;
+            --text-dark: #2a3a10;
+            --text-mid: #3f5714;
+            --text-light: #6b7c4a;
+            --vibrant-green: #7cb342;
+            --vibrant-gold: #d4a853;
+            --deep-forest: #1b3a0a;
+            --danger: #c0392b;
+            --danger-light: #fdecea;
+            --success: #2e7d32;
+            --success-light: #e8f5e9;
+            --sidebar-w: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        /* LOGIN */
+        .login-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(160deg, var(--deep-forest) 0%, #2a5016 50%, var(--sage-dark) 100%);
+            transition: opacity .5s, visibility .5s;
+        }
+
+        .login-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .login-card {
+            background: var(--cream);
+            border-radius: 28px;
+            padding: 3rem 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, .35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--sage-mid), var(--vibrant-green), var(--vibrant-gold));
+        }
+
+        .login-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .6rem;
+            margin-bottom: .5rem;
+        }
+
+        .login-logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--sage-mid), var(--sage-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--cream);
+            font-size: 1.1rem;
+        }
+
+        .login-logo-text {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+        }
+
+        .login-subtitle {
+            text-align: center;
+            font-size: .85rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        .login-error {
+            background: var(--danger-light);
+            color: var(--danger);
+            border: 1px solid rgba(192, 57, 43, .2);
+            border-radius: 10px;
+            padding: .65rem 1rem;
+            font-size: .82rem;
+            margin-bottom: 1.25rem;
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--sage-dark);
+            margin-bottom: .4rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: .75rem 1rem .75rem 2.75rem;
+            border: 1.5px solid var(--sage-light);
+            border-radius: 12px;
+            background: white;
+            font-family: inherit;
+            font-size: .9rem;
+            color: var(--text-dark);
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--sage-dark);
+            box-shadow: 0 0 0 3px rgba(63, 87, 20, .1);
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: .85rem;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: .875rem;
+            border: none;
+            border-radius: 100px;
+            background: linear-gradient(135deg, var(--sage-dark), var(--deep-forest));
+            color: var(--cream);
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(63, 87, 20, .3);
+        }
+
+        /* DASHBOARD LAYOUT */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            background: linear-gradient(180deg, var(--deep-forest) 0%, #1e4409 100%);
+            color: var(--sage-light);
+            padding: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-w);
+            z-index: 50;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding: 0 1.5rem 1.75rem;
+            border-bottom: 1px solid rgba(175, 196, 137, .15);
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-logo-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--sage-mid), var(--vibrant-green));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: .85rem;
+        }
+
+        .sidebar-logo span {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--sage-light);
+        }
+
+        .sidebar-badge {
+            font-size: .55rem;
+            background: var(--vibrant-gold);
+            color: var(--deep-forest);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            vertical-align: super;
+            margin-left: .25rem;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            flex: 1;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 2px;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .7rem 1.5rem;
+            color: rgba(203, 216, 179, .6);
+            text-decoration: none;
+            font-size: .85rem;
+            font-weight: 500;
+            transition: all .2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav a:hover {
+            color: var(--sage-light);
+            background: rgba(175, 196, 137, .08);
+        }
+
+        .sidebar-nav a.active {
+            color: white;
+            background: rgba(124, 179, 66, .12);
+            border-left-color: var(--vibrant-green);
+        }
+
+        .sidebar-nav a i {
+            width: 20px;
+            text-align: center;
+            font-size: .9rem;
+        }
+
+        .sidebar-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid rgba(175, 196, 137, .15);
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--sage-mid), var(--vibrant-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: .8rem;
+        }
+
+        .sidebar-user-info {
+            font-size: .8rem;
+        }
+
+        .sidebar-user-info strong {
+            display: block;
+            color: var(--sage-light);
+        }
+
+        .sidebar-user-info span {
+            color: rgba(203, 216, 179, .5);
+            font-size: .7rem;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: .55rem;
+            border: 1px solid rgba(175, 196, 137, .25);
+            border-radius: 10px;
+            background: transparent;
+            color: rgba(203, 216, 179, .6);
+            font-size: .78rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .4rem;
+        }
+
+        .btn-logout:hover {
+            background: rgba(192, 57, 43, .15);
+            border-color: rgba(192, 57, 43, .4);
+            color: #e74c3c;
+        }
+
+        /* MAIN */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            padding: 2rem 3rem;
+            min-height: 100vh;
+            width: calc(100% - var(--sidebar-w));
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .topbar-left h1 {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+        }
+
+        .topbar-left p {
+            font-size: .85rem;
+            color: var(--text-light);
+        }
+
+        /* STATS */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1.5px solid rgba(175, 196, 137, .25);
+            border-radius: 18px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform .25s, box-shadow .25s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(63, 87, 20, .08);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .stat-card:nth-child(1)::before {
+            background: linear-gradient(90deg, var(--vibrant-green), var(--sage-mid));
+        }
+
+        .stat-card:nth-child(2)::before {
+            background: linear-gradient(90deg, var(--vibrant-gold), var(--warm-gold));
+        }
+
+        .stat-card:nth-child(3)::before {
+            background: linear-gradient(90deg, #5c9ce6, #3a7bd5);
+        }
+
+        .stat-card:nth-child(4)::before {
+            background: linear-gradient(90deg, #e879a0, #c0392b);
+        }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            margin-bottom: .75rem;
+        }
+
+        .stat-card:nth-child(1) .stat-icon {
+            background: rgba(124, 179, 66, .12);
+            color: var(--vibrant-green);
+        }
+
+        .stat-card:nth-child(2) .stat-icon {
+            background: rgba(212, 168, 83, .12);
+            color: var(--vibrant-gold);
+        }
+
+        .stat-card:nth-child(3) .stat-icon {
+            background: rgba(92, 156, 230, .12);
+            color: #5c9ce6;
+        }
+
+        .stat-card:nth-child(4) .stat-icon {
+            background: rgba(192, 57, 43, .1);
+            color: #c0392b;
+        }
+
+        .stat-value {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: .78rem;
+            color: var(--text-light);
+            margin-top: .3rem;
+            font-weight: 500;
+        }
+
+        .stat-change {
+            font-size: .7rem;
+            font-weight: 600;
+            margin-top: .4rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .2rem;
+            color: var(--success);
+        }
+
+        /* ==========================================
+     TABLE & TOOLBAR - OVERHAULED (UNCROWDED) 
+     ========================================== */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            background: white;
+            border: 2px solid rgba(175, 196, 137, .3);
+            border-radius: 18px;
+            padding: 2rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            box-shadow: 0 4px 12px rgba(63, 87, 20, .05);
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Large Search Input */
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 1.15rem 1.5rem 1.15rem 3rem;
+            border: 2px solid var(--sage-light);
+            border-radius: 14px;
+            background: var(--cream);
+            font-family: inherit;
+            font-size: 1.05rem;
+            color: var(--text-dark);
+            outline: none;
+            width: 320px;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--sage-dark);
+            box-shadow: 0 0 0 4px rgba(63, 87, 20, .1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        /* Large Select Dropdown */
+        .filter-select {
+            padding: 1.15rem 3.5rem 1.15rem 1.5rem;
+            border: 2px solid var(--sage-light);
+            border-radius: 14px;
+            background: var(--cream);
+            font-family: inherit;
+            font-size: 1.05rem;
+            color: var(--text-dark);
+            outline: none;
+            appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7c4a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1.2rem center;
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Massive Action Buttons */
+        .btn-tool {
+            padding: 1.15rem 2rem;
+            border: 2px solid rgba(175, 196, 137, .3);
+            border-radius: 14px;
+            background: white;
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-mid);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            transition: all .2s;
+        }
+
+        .btn-tool:hover {
+            border-color: var(--sage-dark);
+            color: var(--sage-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(63, 87, 20, .1);
+        }
+
+        .btn-tool.danger {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .btn-tool.danger:hover {
+            background: var(--danger-light);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        /* Uncramped Table */
+        .table-wrap {
+            background: white;
+            border: 2px solid rgba(175, 196, 137, .3);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(63, 87, 20, .05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: linear-gradient(135deg, var(--sage-dark), var(--deep-forest));
+        }
+
+        .data-table th {
+            padding: 1.25rem 1.5rem;
+            text-align: left;
+            color: var(--cream);
+            font-size: .82rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        .data-table td {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(175, 196, 137, .15);
+            font-size: .95rem;
+            color: var(--text-dark);
+            vertical-align: middle;
+        }
+
+        .data-table tbody tr {
+            transition: background .15s;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(175, 196, 137, .06);
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: .5rem;
+        }
+
+        .btn-row {
+            width: 38px;
+            height: 38px;
+            border: 2px solid rgba(175, 196, 137, .3);
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .85rem;
+            transition: all .2s;
+            color: var(--text-light);
+        }
+
+        .btn-row.view:hover {
+            border-color: var(--vibrant-green);
+            color: var(--vibrant-green);
+            background: var(--success-light);
+        }
+
+        .btn-row.delete:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: var(--danger-light);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--sage-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state h3 {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.5rem;
+            color: var(--sage-dark);
+            margin-bottom: .5rem;
+        }
+
+        /* Larger Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            border-top: 2px solid rgba(175, 196, 137, .15);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-info {
+            font-size: .9rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .page-btns {
+            display: flex;
+            gap: .5rem;
+        }
+
+        .page-btn {
+            width: 42px;
+            height: 42px;
+            border: 2px solid rgba(175, 196, 137, .3);
+            border-radius: 10px;
+            background: white;
+            font-family: inherit;
+            font-size: .9rem;
+            font-weight: 700;
+            color: var(--text-mid);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s;
+        }
+
+        .page-btn.active {
+            background: var(--sage-dark);
+            color: white;
+            border-color: var(--sage-dark);
+        }
+
+        .page-btn:disabled {
+            opacity: .3;
+            cursor: default;
+        }
+
+        /* MODALS */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(27, 58, 10, .55);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--cream);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 560px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 24px 64px rgba(27, 58, 10, .3);
+            animation: modalIn .3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(.95) translateY(10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(175, 196, 137, .3);
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .modal-close:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .detail-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--sage-mid), var(--vibrant-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .detail-name {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+        }
+
+        .detail-fields {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .detail-field {
+            background: white;
+            border: 1px solid rgba(175, 196, 137, .2);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+        }
+
+        .detail-field-label {
+            font-size: .68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--vibrant-gold);
+            margin-bottom: .3rem;
+        }
+
+        .detail-field-value {
+            font-size: .9rem;
+            color: var(--text-dark);
+            word-break: break-word;
+        }
+
+        .detail-field-value a {
+            color: var(--sage-dark);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: .75rem;
+            margin-top: 1.75rem;
+        }
+
+        .btn-detail {
+            flex: 1;
+            padding: .7rem;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: .85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .4rem;
+            transition: all .2s;
+        }
+
+        .btn-detail.primary {
+            background: linear-gradient(135deg, var(--sage-dark), var(--deep-forest));
+            color: var(--cream);
+            border: none;
+        }
+
+        .btn-detail.danger-outline {
+            background: white;
+            border: 1.5px solid rgba(192, 57, 43, .3);
+            color: var(--danger);
+        }
+
+        .confirm-body {
+            text-align: center;
+        }
+
+        .confirm-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--danger-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            font-size: 1.5rem;
+            color: var(--danger);
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: .75rem;
+        }
+
+        .confirm-actions button {
+            flex: 1;
+            padding: .7rem;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: .85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-confirm-cancel {
+            background: white;
+            border: 1.5px solid rgba(175, 196, 137, .3);
+            color: var(--text-mid);
+        }
+
+        .btn-confirm-delete {
+            background: var(--danger);
+            border: none;
+            color: white;
+        }
+
+        /* TOAST */
+        .toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .toast {
+            padding: .75rem 1.25rem;
+            border-radius: 12px;
+            font-size: .85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+            animation: toastIn .35s ease;
+            min-width: 260px;
+        }
+
+        .toast.success {
+            background: var(--success-light);
+            border: 1px solid rgba(46, 125, 50, .2);
+            color: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger-light);
+            border: 1px solid rgba(192, 57, 43, .2);
+            color: var(--danger);
+        }
+
+        .toast.info {
+            background: #e3f2fd;
+            border: 1px solid rgba(59, 130, 246, .2);
+            color: #1565c0;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .toast.removing {
+            animation: toastOut .3s ease forwards;
+        }
+
+        @keyframes toastOut {
+            to {
+                opacity: 0;
+                transform: translateX(30px)
+            }
+        }
+
+        /* CHARTS */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border: 1.5px solid rgba(175, 196, 137, .25);
+            border-radius: 18px;
+            padding: 1.5rem;
+        }
+
+        .chart-card h3 {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.1rem;
+            color: var(--sage-dark);
+            margin-bottom: 1rem;
+        }
+
+        .mini-bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            height: 120px;
+            padding-top: .5rem;
+        }
+
+        .mini-bar {
+            flex: 1;
+            border-radius: 6px 6px 0 0;
+            transition: height .6s ease;
+            min-height: 4px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .mini-bar:hover {
+            opacity: .85;
+        }
+
+        .mini-bar-label {
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: .6rem;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+
+        .mini-bar-value {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: .65rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+        }
+
+        .recent-list {
+            list-style: none;
+        }
+
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .65rem 0;
+            border-bottom: 1px solid rgba(175, 196, 137, .1);
+        }
+
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+
+        .recent-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--vibrant-green);
+            flex-shrink: 0;
+        }
+
+        .recent-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .recent-info strong {
+            font-size: .82rem;
+            color: var(--sage-dark);
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .recent-info span {
+            font-size: .72rem;
+            color: var(--text-light);
+        }
+
+        .recent-time {
+            font-size: .7rem;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+
+        /* ==========================================
+     CONTENT EDITOR - MASSIVE OVERHAUL 
+     ========================================== */
+        #view-content .editor-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 2px solid var(--sage-light);
+            margin: -2rem -3rem 3rem -3rem;
+            padding: 1.5rem 3rem;
+            box-shadow: 0 8px 24px rgba(63, 87, 20, .1);
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .btn-editor-action {
+            flex: 1;
+            padding: 1.2rem 2rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+            border-radius: 14px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-editor-save {
+            background: linear-gradient(135deg, var(--sage-dark), var(--deep-forest));
+            color: var(--cream);
+            box-shadow: 0 6px 20px rgba(63, 87, 20, .35);
+        }
+
+        .btn-editor-save:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(63, 87, 20, .45);
+        }
+
+        .btn-editor-reset {
+            background: white;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+
+        .btn-editor-reset:hover {
+            background: var(--danger-light);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(192, 57, 43, .15);
+        }
+
+        .content-editor-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 4rem;
+        }
+
+        .editor-section {
+            background: white;
+            border: 2px solid rgba(175, 196, 137, .3);
+            border-radius: 24px;
+            padding: 3.5rem;
+            box-shadow: 0 8px 24px rgba(63, 87, 20, .05);
+        }
+
+        .editor-section-title {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.8rem;
+            color: var(--deep-forest);
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 2rem;
+            border-bottom: 4px solid var(--sage-mid);
+        }
+
+        .editor-section-title i {
+            color: var(--vibrant-green);
+            width: 48px;
+            height: 48px;
+            background: rgba(124, 179, 66, .1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .editor-images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-bottom: 4rem;
+            padding-bottom: 4rem;
+            border-bottom: 3px dashed rgba(175, 196, 137, .4);
+        }
+
+        .editor-field {
+            margin-bottom: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-field label {
+            display: block;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        .editor-field input[type="text"],
+        .editor-field textarea {
+            width: 100%;
+            padding: 1.25rem 1.5rem;
+            border: 2px solid var(--sage-light);
+            border-radius: 14px;
+            background: var(--cream);
+            font-family: inherit;
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .editor-field input[type="text"]:focus,
+        .editor-field textarea:focus {
+            border-color: var(--sage-dark);
+            box-shadow: 0 0 0 5px rgba(63, 87, 20, .1);
+            background: white;
+        }
+
+        .editor-field textarea {
+            resize: vertical;
+            min-height: 150px;
+            line-height: 1.7;
+        }
+
+        .img-preview {
+            margin-top: 1.25rem;
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 16px;
+            background: var(--cream-dark);
+            border: 3px dashed var(--sage-light);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, .05);
+        }
+
+        .img-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .img-preview span {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .img-preview.drag-over {
+            border-color: var(--vibrant-green);
+            background: rgba(124, 179, 66, .08);
+            transform: scale(1.02);
+            transition: all 0.2s ease;
+        }
+
+        .file-input-hidden {
+            display: none;
+        }
+
+        .drag-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            font-size: 0.9rem;
+            color: var(--vibrant-green);
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .img-preview.drag-over .drag-hint {
+            opacity: 1;
+        }
+
+        .image-field {
+            position: relative;
+        }
+
+        .img-preview {
+            cursor: pointer;
+        }
+
+        .editor-text-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        @media(max-width:1024px) {
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(max-width:900px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform .3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .dashboard.active {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem 1.5rem;
+                width: 100%;
+            }
+
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .mobile-toggle {
+                display: flex !important;
+            }
+
+            #view-content .editor-toolbar {
+                margin: -1.5rem -1.5rem 2rem -1.5rem;
+                padding: 1.25rem 1.5rem;
+            }
+
+            .btn-editor-action {
+                padding: 1rem;
+                font-size: 1rem;
+            }
+
+            .editor-images-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .editor-section {
+                padding: 2rem;
+            }
+
+            .toolbar {
+                padding: 1.5rem;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+        }
+
+        @media(max-width:480px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            #view-content .editor-toolbar {
+                flex-direction: column;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toolbar-left,
+            .toolbar-right {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+
+            .btn-tool {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .mobile-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 1.5px solid rgba(175, 196, 137, .3);
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--sage-dark);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--sage-light);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="login-logo-icon">☯</div>
+                <div class="login-logo-text">YogaCoach</div>
+            </div>
+            <p class="login-subtitle">Admin Dashboard — Sign in to manage your website</p>
+            <div class="login-error" id="loginError"><i class="fas fa-exclamation-circle"></i> Invalid credentials. Use
+                Admin / Admin</div>
+            <form id="loginForm">
+                <div class="form-group"><label>Username</label>
+                    <div class="input-wrap"><i class="fas fa-user"></i><input type="text" id="loginUser"></div>
+                </div>
+                <div class="form-group"><label>Password</label>
+                    <div class="input-wrap"><i class="fas fa-lock"></i><input type="password" id="loginPass"></div>
+                </div>
+                <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt"></i>&nbsp; Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">☯</div><span>YogaCoach<span class="sidebar-badge">ADMIN</span></span>
+            </div>
+            <ul class="sidebar-nav">
+                <li><a href="#" class="active" data-view="overview"><i class="fas fa-chart-pie"></i> Overview</a></li>
+                <li><a href="#" data-view="registrations"><i class="fas fa-users"></i> Registrations</a></li>
+                <li><a href="#" data-view="analytics"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+                <li><a href="#" data-view="content"><i class="fas fa-pen-fancy"></i> Content Editor</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-avatar">A</div>
+                    <div class="sidebar-user-info"><strong>Admin</strong><span>Super Administrator</span></div>
+                </div>
+                <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <div class="topbar">
+                <div style="display:flex;align-items:center;gap:1rem;">
+                    <button class="mobile-toggle"
+                        onclick="document.getElementById('sidebar').classList.toggle('open')"><i
+                            class="fas fa-bars"></i></button>
+                    <div class="topbar-left">
+                        <h1 id="viewTitle">Overview</h1>
+                        <p id="viewSubtitle">Welcome back!</p>
+                    </div>
+                </div>
+                <div style="display:flex;gap:.5rem;">
+                    <button class="btn-tool" onclick="exportCSV()"><i class="fas fa-file-export"></i> Export
+                        CSV</button>
+                    <button class="btn-tool" onclick="refreshData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+            </div>
+
+            <div id="view-overview">
+                <div class="stats-row" id="statsRow"></div>
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-bar" style="color:var(--vibrant-green);margin-right:.4rem;"></i>
+                            Registrations This Week</h3>
+                        <div class="mini-bar-chart" id="weekChart" style="padding-bottom:28px;"></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3><i class="fas fa-clock" style="color:var(--vibrant-gold);margin-right:.4rem;"></i> Recent
+                            Activity</h3>
+                        <ul class="recent-list" id="recentList"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-registrations" style="display:none;">
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput"
+                                placeholder="Search by name, email, phone..."></div>
+                        <select class="filter-select" id="dateFilter">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                    <div class="toolbar-right">
+                        <button class="btn-tool danger" onclick="confirmClearAll()"><i class="fas fa-trash-alt"></i>
+                            Clear All Records</button>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Query</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                    <div class="pagination" id="pagination"></div>
+                </div>
+            </div>
+
+            <div id="view-analytics" style="display:none;">
+                <div class="stats-row" id="analyticsStats"></div>
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <h3><i class="fas fa-calendar-alt" style="color:var(--vibrant-green);margin-right:.4rem;"></i>
+                            Daily (Last 14 Days)</h3>
+                        <div class="mini-bar-chart" id="dailyChart" style="padding-bottom:28px;"></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3><i class="fas fa-graduation-cap" style="color:var(--vibrant-gold);margin-right:.4rem;"></i>
+                            Keywords</h3>
+                        <div id="keywordCloud" style="display:flex;flex-wrap:wrap;gap:.5rem;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-content" style="display:none;">
+                <div class="editor-toolbar">
+                    <button class="btn-editor-action btn-editor-reset" onclick="resetContent()"><i
+                            class="fas fa-undo"></i> Reset All to Default</button>
+                    <button class="btn-editor-action btn-editor-save" onclick="saveContent()"><i
+                            class="fas fa-save"></i> Save All Changes</button>
+                </div>
+                <div class="content-editor-grid" id="content-editor-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-box"><button class="modal-close" onclick="closeModal('detailModal')">&times;</button>
+            <div id="detailContent"></div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-box" style="max-width:420px;"><button class="modal-close"
+                onclick="closeModal('confirmModal')">&times;</button>
+            <div class="confirm-body">
+                <div class="confirm-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <h3 id="confirmTitle">Delete?</h3>
+                <p id="confirmMsg">This cannot be undone.</p>
+                <div class="confirm-actions"><button class="btn-confirm-cancel"
+                        onclick="closeModal('confirmModal')">Cancel</button><button class="btn-confirm-delete"
+                        id="confirmBtn">Delete</button></div>
+            </div>
+        </div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        (function () {
+            var ITEMS_PER_PAGE = 10, currentPage = 1, filteredData = [], currentView = 'overview';
+            var isLoggedIn = sessionStorage.getItem('yoga_admin') === 'true';
+
+            var contentConfig = [
+                {
+                    id: 'hero', title: 'Hero Section', icon: 'fa-home', fields: [
+                        { key: 'hero_bg', type: 'image', label: 'Background Image', default: 'images/hero-bg.png' },
+                        { key: 'img_hero_circle', type: 'image', label: 'Circle Image', default: 'images/hero-circle.png' },
+                        { key: 'hero_eyebrow', type: 'text', label: 'Eyebrow', default: 'CÂN BẰNG · CHUYÊN HÓA · TRỌN VẸN' },
+                        { key: 'hero_h1', type: 'text', label: 'Title', default: 'Trở về với chính mình' },
+                        { key: 'hero_sub', type: 'textarea', label: 'Subtitle', default: 'Chương trình yoga và coaching cá nhân hóa — giúp bạn nâng cao thể chất, làm chủ tâm trí và sống trọn vẹn hơn mỗi ngày.' }
+                    ]
+                },
+                {
+                    id: 'pain', title: 'Pain Points Section', icon: 'fa-exclamation-triangle', fields: [
+                        { key: 'img_pain1', type: 'image', label: 'Card 1 Image', default: 'images/pain-neck-shoulder.png' },
+                        { key: 'img_pain2', type: 'image', label: 'Card 2 Image', default: 'images/pain-stress.png' },
+                        { key: 'img_pain3', type: 'image', label: 'Card 3 Image', default: 'images/pain-discipline.png' },
+                        { key: 'pain_eyebrow', type: 'text', label: 'Section Eyebrow', default: 'Bạn có đang trải qua?' },
+                        { key: 'pain_title', type: 'text', label: 'Section Title', default: 'Bạn có đang "kiệt sức" thầm lặng?' },
+                        { key: 'pain_sub', type: 'textarea', label: 'Section Subtitle', default: 'Dân văn phòng hiện đại đang đối mặt với những hệ lụy sức khỏe nghiêm trọng từ bàn làm việc, nhưng thường bị ngó lơ.' },
+                        { key: 'pain_h3_1', type: 'text', label: 'Card 1 Title', default: 'Cổ – Vai – Gáy' },
+                        { key: 'pain_p_1', type: 'textarea', label: 'Card 1 Text', default: 'Cảm giác cứng đơ, đau nhức dai dẳng sau 8 tiếng ngồi máy tính. Cơ thể nặng nề và thiếu linh hoạt.' },
+                        { key: 'pain_h3_2', type: 'text', label: 'Card 2 Title', default: 'Stress & Sương Mù Tinh Thần' },
+                        { key: 'pain_p_2', type: 'textarea', label: 'Card 2 Text', default: 'Mất tập trung, sụt giảm hiệu suất. Luôn thấy mệt mỏi dù đã ngủ đủ giấc, tinh thần lo âu.' },
+                        { key: 'pain_h3_3', type: 'text', label: 'Card 3 Title', default: 'Kỷ Luật Thất Bại' },
+                        { key: 'pain_p_3', type: 'textarea', label: 'Card 3 Text', default: 'Mua thẻ Gym rồi bỏ phí. Muốn thay đổi nhưng luôn bị trì hoãn — vòng lặp không hồi kết.' }
+                    ]
+                },
+                {
+                    id: 'solution', title: 'Coach & 5 Pillars Section', icon: 'fa-hands-helping', fields: [
+                        { key: 'img_coach', type: 'image', label: 'Coach Image', default: 'images/coach.png' },
+                        { key: 'sol_eyebrow', type: 'text', label: 'Question (Eyebrow)', default: 'Bạn Có Biết?' },
+                        { key: 'sol_answer1_label', type: 'text', label: 'Answer 1 Label', default: 'Giải pháp thứ nhất' },
+                        { key: 'sol_title', type: 'text', label: 'Answer 1 Title', default: 'Thể Chất + Tư Duy =<br>Thay Đổi Thật Sự' },
+                        { key: 'sol_text', type: 'textarea', label: 'Answer 1 Description', default: 'Yoga giải quyết <strong style="color:var(--sage-dark)">"Phần Ngọn"</strong> (thể chất), nhưng Coaching mới thay đổi <strong style="color:var(--sage-dark)">"Phần Gốc"</strong> (thói quen).' },
+                        { key: 'sol_answer2_label', type: 'text', label: 'Answer 2 Label', default: 'Giải pháp thứ hai' },
+                        { key: 'img_solution1', type: 'image', label: 'Pillar 1 Image (Right Exercise)', default: 'images/pillar-personal-yoga.png' },
+                        { key: 'img_solution2', type: 'image', label: 'Pillar 2 Image (Right Eating)', default: 'images/pillar-nutrition.png' },
+                        { key: 'img_solution3', type: 'image', label: 'Pillar 3 Image (Right Breathing)', default: 'images/pillar-breathing.png' },
+                        { key: 'img_solution4', type: 'image', label: 'Pillar 4 Image (Right Relaxing)', default: 'images/pillar-mindfulness.png' },
+                        { key: 'img_solution5', type: 'image', label: 'Pillar 5 Image (Positive Thinking)', default: 'images/pillar-habit.png' },
+                        { key: 'pillar_title', type: 'text', label: 'Answer 2 Title (Pillars)', default: '5 Trụ Cột Của Chương Trình' },
+                        { key: 'pillar_sub', type: 'textarea', label: 'Answer 2 Subtitle', default: 'Nhấn vào từng trụ cột để khám phá chi tiết cách chúng tác động lên thể chất, tinh thần và thói quen của bạn.' },
+                        { key: 'pillar1_h3', type: 'text', label: 'Pillar 1 Title', default: 'Vận Động Đúng Cách' },
+                        { key: 'pillar1_p', type: 'textarea', label: 'Pillar 1 Text', default: 'Bài tập thiết kế riêng cho tình trạng cột sống và cơ địa của bạn — không phải giáo án đại trà.' },
+                        { key: 'pillar2_h3', type: 'text', label: 'Pillar 2 Title', default: 'Ăn Uống Đúng Cách' },
+                        { key: 'pillar2_p', type: 'textarea', label: 'Pillar 2 Text', default: 'Mẹo ăn uống lành mạnh mà không cần ăn kiêng khắt khe hay đếm calories.' },
+                        { key: 'pillar3_h3', type: 'text', label: 'Pillar 3 Title', default: 'Hơi Thở Đúng Cách' },
+                        { key: 'pillar3_p', type: 'textarea', label: 'Pillar 3 Text', default: 'Kỹ thuật hít thở sâu giúp giảm stress tức thì, tăng oxy cho não và cân bằng hệ thần kinh.' },
+                        { key: 'pillar4_h3', type: 'text', label: 'Pillar 4 Title', default: 'Thư Giãn Đúng Cách' },
+                        { key: 'pillar4_p', type: 'textarea', label: 'Pillar 4 Text', default: 'Học cách "ngắt kết nối" công việc để tái tạo năng lượng tinh thần sâu và bền vững.' },
+                        { key: 'pillar5_h3', type: 'text', label: 'Pillar 5 Title', default: 'Tư Duy Tích Cực' },
+                        { key: 'pillar5_p', type: 'textarea', label: 'Pillar 5 Text', default: 'Đồng hành nhắc nhở và xây dựng thói quen suy nghĩ tích cực mỗi ngày, chuyển hóa góc nhìn từ hạn chế sang phát triển.' }
+                    ]
+                },
+                {
+                    id: 'packages', title: 'Packages Section', icon: 'fa-box', fields: [
+                        { key: 'img_package1', type: 'image', label: 'Package 1 Image', default: 'images/package-recovery.png' },
+                        { key: 'img_package2', type: 'image', label: 'Package 2 Image', default: 'images/package-balance.png' },
+                        { key: 'img_package3', type: 'image', label: 'Package 3 Image', default: 'images/package-transform.png' },
+                        { key: 'pkg_eyebrow', type: 'text', label: 'Eyebrow', default: "Chương trình trải nghiệm — Founder's Offer" },
+                        { key: 'pkg_title', type: 'text', label: 'Title', default: 'Chọn Gói Phù Hợp Với Bạn' },
+                        { key: 'pkg_sub', type: 'textarea', label: 'Subtitle', default: 'Cơ hội duy nhất để sở hữu lộ trình cao cấp với mức phí ưu đãi đặc biệt dành cho những người đầu tiên.' },
+                        { key: 'pkg1_tag', type: 'text', label: 'Pkg 1 Tag', default: 'Gói 01' },
+                        { key: 'pkg1_h3', type: 'text', label: 'Pkg 1 Title', default: 'Phục Hồi<br>30 Ngày' },
+                        { key: 'pkg1_desc', type: 'textarea', label: 'Pkg 1 Desc', default: 'Dành cho người muốn "cấp cứu" nhanh các vấn đề đau mỏi và stress tích tụ.' },
+                        { key: 'pkg1_f1', type: 'text', label: 'Pkg 1 Feature 1', default: '08 buổi Yoga Private 1-1' },
+                        { key: 'pkg1_f2', type: 'text', label: 'Pkg 1 Feature 2', default: '02 phiên Coaching kỷ luật' },
+                        { key: 'pkg1_f3', type: 'text', label: 'Pkg 1 Feature 3', default: 'Hỗ trợ Zalo 30 ngày' },
+                        { key: 'pkg1_note', type: 'text', label: 'Pkg 1 Note', default: '* Giới hạn 03 suất đầu tiên' },
+                        { key: 'pkg2_badge', type: 'text', label: 'Pkg 2 Badge', default: 'Phổ biến nhất' },
+                        { key: 'pkg2_tag', type: 'text', label: 'Pkg 2 Tag', default: 'Gói 02' },
+                        { key: 'pkg2_h3', type: 'text', label: 'Pkg 2 Title', default: 'Cân Bằng<br>60 Ngày' },
+                        { key: 'pkg2_desc', type: 'textarea', label: 'Pkg 2 Desc', default: 'Hành trình cân bằng thể chất và tinh thần, thiết lập nền tảng thói quen bền vững.' },
+                        { key: 'pkg2_f1', type: 'text', label: 'Pkg 2 Feature 1', default: '16 buổi Yoga Private chuyên sâu' },
+                        { key: 'pkg2_f2', type: 'text', label: 'Pkg 2 Feature 2', default: '04 phiên Coaching kiến tạo lối sống' },
+                        { key: 'pkg2_f3', type: 'text', label: 'Pkg 2 Feature 3', default: 'Hỗ trợ Zalo suốt 60 ngày' },
+                        { key: 'pkg2_note', type: 'text', label: 'Pkg 2 Note', default: '* Giới hạn 03 suất đầu tiên' },
+                        { key: 'pkg3_badge', type: 'text', label: 'Pkg 3 Badge', default: 'Chuyển hóa sâu' },
+                        { key: 'pkg3_tag', type: 'text', label: 'Pkg 3 Tag', default: 'Gói 03' },
+                        { key: 'pkg3_h3', type: 'text', label: 'Pkg 3 Title', default: 'Chuyển Hóa<br>90 Ngày' },
+                        { key: 'pkg3_desc', type: 'textarea', label: 'Pkg 3 Desc', default: 'Hành trình thay đổi toàn diện từ tư duy đến vóc dáng, cam kết lột xác bền vững.' },
+                        { key: 'pkg3_f1', type: 'text', label: 'Pkg 3 Feature 1', default: '24 buổi Yoga Private chuyên sâu' },
+                        { key: 'pkg3_f2', type: 'text', label: 'Pkg 3 Feature 2', default: '06 phiên Coaching kiến tạo lối sống' },
+                        { key: 'pkg3_f3', type: 'text', label: 'Pkg 3 Feature 3', default: 'Tặng E-book tự tập & mẹo ăn uống' },
+                        { key: 'pkg3_f4', type: 'text', label: 'Pkg 3 Feature 4', default: 'Hỗ trợ Zalo suốt 90 ngày' },
+                        { key: 'pkg3_note', type: 'text', label: 'Pkg 3 Note', default: '* Giới hạn 02 suất đầu tiên' },
+                        { key: 'pkg_cta', type: 'text', label: 'Button Text', default: 'Đăng ký ngay' }
+                    ]
+                },
+                {
+                    id: 'about', title: 'About Us Section', icon: 'fa-user-friends', fields: [
+                        { key: 'img_coach_health', type: 'image', label: 'Coach 1 Image', default: 'images/coach-health.png' },
+                        { key: 'img_coach_yoga1', type: 'image', label: 'Coach 2 Image', default: 'images/coach-yoga1.png' },
+                        { key: 'img_coach_yoga2', type: 'image', label: 'Coach 3 Image', default: 'images/coach-yoga2.png' },
+                        { key: 'img_coach_yoga3', type: 'image', label: 'Coach 4 Image', default: 'images/coach-yoga3.png' },
+                        { key: 'about_eyebrow', type: 'text', label: 'Eyebrow', default: 'Đội ngũ chuyên gia' },
+                        { key: 'about_title', type: 'text', label: 'Title', default: 'Về Chúng Tôi' },
+                        { key: 'about_sub', type: 'textarea', label: 'Subtitle', default: 'Đội ngũ huấn luyện viên giàu kinh nghiệm, tận tâm đồng hành cùng bạn trên hành trình chuyển hóa.' },
+                        { key: 'about_role_health', type: 'text', label: 'Coach 1 Role', default: 'Huấn Luyện Viên Sức Khỏe' },
+                        { key: 'about_desc_health', type: 'textarea', label: 'Coach 1 Desc', default: 'Chuyên gia về lối sống lành mạnh và dinh dưỡng Chánh niệm. Hơn 8 năm kinh nghiệm giúp khách hàng phục hồi năng lượng.' },
+                        { key: 'about_role_yoga', type: 'text', label: 'Coach 2, 3, 4 Role', default: 'Huấn Luyện Viên Yoga' },
+                        { key: 'about_desc_yoga1', type: 'textarea', label: 'Coach 2 Desc', default: 'Chuyên sâu Yoga trị liệu cột sống và đau mỏi cổ vai gáy. Kỹ thuật chỉnh sửa chuẩn xác.' },
+                        { key: 'about_desc_yoga2', type: 'textarea', label: 'Coach 3 Desc', default: 'Chuyên gia Yoga restore và thải độc cơ thể. Giúp giải tỏa căng thẳng sâu.' },
+                        { key: 'about_desc_yoga3', type: 'textarea', label: 'Coach 4 Desc', default: 'Huấn luyện viên Ashtanga và Vinyasa. Nâng cao sức bền và xây dựng kỷ luật.' }
+                    ]
+                },
+                {
+                    id: 'timeline', title: 'Timeline & Quote', icon: 'fa-clock', fields: [
+                        { key: 'img_quote_bg', type: 'image', label: 'Quote Background Image', default: 'images/quote-bg.png' },
+                        { key: 'tl_eyebrow', type: 'text', label: 'Timeline Eyebrow', default: 'Hành trình đồng hành' },
+                        { key: 'tl_title', type: 'text', label: 'Timeline Title', default: 'Lộ Trình 8 Tuần' },
+                        { key: 'tl_s1_h4', type: 'text', label: 'Step 1 Title', default: 'Tuần 1' },
+                        { key: 'tl_s1_p', type: 'text', label: 'Step 1 Text', default: 'Khám phá bản thân & lập lộ trình riêng.' },
+                        { key: 'tl_s2_h4', type: 'text', label: 'Step 2 Title', default: 'Tuần 2–4' },
+                        { key: 'tl_s2_p', type: 'text', label: 'Step 2 Text', default: 'Xóa tan đau mỏi & phục hồi cơ bản.' },
+                        { key: 'tl_s3_h4', type: 'text', label: 'Step 3 Title', default: 'Tuần 5–8' },
+                        { key: 'tl_s3_p', type: 'text', label: 'Step 3 Text', default: 'Kiến tạo thói quen & kỷ luật tự thân.' },
+                        { key: 'tl_s4_h4', type: 'text', label: 'Step 4 Title', default: 'Sau 8 Tuần' },
+                        { key: 'tl_s4_p', type: 'text', label: 'Step 4 Text', default: 'Làm chủ lối sống & duy trì bền vững.' },
+                        { key: 'quote_text', type: 'textarea', label: 'Quote Text', default: 'Cơ thể bạn là ngôi đền duy nhất bạn có. Hãy chăm sóc nó bằng cả sự hiểu biết và tình yêu thương.' },
+                        { key: 'quote_attr', type: 'text', label: 'Quote Author', default: '— Triết lý Wellness' }
+                    ]
+                },
+                {
+                    id: 'cta', title: 'Call to Action & Contact', icon: 'fa-phone-alt', fields: [
+                        { key: 'cta_eyebrow', type: 'text', label: 'CTA Eyebrow', default: 'Sẵn sàng thay đổi?' },
+                        { key: 'cta_title', type: 'text', label: 'CTA Title', default: 'Bắt Đầu Hành Trình Hôm Nay' },
+                        { key: 'cta_sub', type: 'textarea', label: 'CTA Text', default: 'Để đảm bảo chất lượng Coaching, tôi chỉ nhận <strong>05 thành viên</strong> duy nhất cho chương trình trải nghiệm tháng này.' },
+                        { key: 'cta_limit', type: 'text', label: 'Urgency Badge', default: '🔥 Còn 5 suất — tháng này' },
+                        { key: 'cta_btn', type: 'text', label: 'Button Text', default: '👉 Đặt lịch tư vấn miễn phí' },
+                        { key: 'cta_phone', type: 'text', label: 'Phone Number', default: '0123 456 789' },
+                        { key: 'cta_website', type: 'text', label: 'Website URL', default: 'www.youryoga.com' }
+                    ]
+                }
+            ];
+
+            document.addEventListener('DOMContentLoaded', function () {
+                if (isLoggedIn) showDashboard();
+                document.getElementById('loginForm').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    if (document.getElementById('loginUser').value.trim() === 'Admin' && document.getElementById('loginPass').value === 'Admin') {
+                        sessionStorage.setItem('yoga_admin', 'true'); isLoggedIn = true; document.getElementById('loginError').style.display = 'none'; showDashboard();
+                    } else { document.getElementById('loginError').style.display = 'block'; }
+                });
+                document.getElementById('searchInput').addEventListener('input', debounce(function () { currentPage = 1; renderTable(); }, 250));
+                document.getElementById('dateFilter').addEventListener('change', function () { currentPage = 1; renderTable(); });
+                document.querySelectorAll('.sidebar-nav a[data-view]').forEach(function (a) {
+                    a.addEventListener('click', function (e) { e.preventDefault(); switchView(this.getAttribute('data-view')); document.getElementById('sidebar').classList.remove('open'); });
+                });
+                document.querySelectorAll('.modal-overlay').forEach(function (ov) { ov.addEventListener('click', function (e) { if (e.target === ov) closeModal(ov.id); }); });
+            });
+
+            function showDashboard() { document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('dashboard').classList.add('active'); refreshData(); }
+            window.logout = function () { sessionStorage.removeItem('yoga_admin'); isLoggedIn = false; document.getElementById('loginScreen').classList.remove('hidden'); document.getElementById('dashboard').classList.remove('active'); };
+            function getData() { return JSON.parse(localStorage.getItem('yoga_subs') || '[]'); }
+            window.refreshData = function () { switchView(currentView); showToast('Data refreshed', 'success'); };
+
+            function switchView(view) {
+                currentView = view;
+                document.querySelectorAll('.sidebar-nav a').forEach(function (a) { a.classList.toggle('active', a.getAttribute('data-view') === view); });
+                ['overview', 'registrations', 'analytics', 'content'].forEach(function (v) { document.getElementById('view-' + v).style.display = view === v ? '' : 'none'; });
+                var titles = { overview: ['Overview', 'Welcome back!'], registrations: ['Registrations', 'Manage forms.'], analytics: ['Analytics', 'Insights.'], content: ['Content Editor', 'Update website text & images.'] };
+                document.getElementById('viewTitle').textContent = titles[view][0]; document.getElementById('viewSubtitle').textContent = titles[view][1];
+                if (view === 'overview') renderOverview(); else if (view === 'registrations') renderTable(); else if (view === 'analytics') renderAnalytics(); else if (view === 'content') renderContentEditor();
+            }
+
+            function renderOverview() { var data = getData(), tc = data.filter(function (d) { return new Date(d.date).toDateString() === new Date().toDateString() }).length, wa = new Date(); wa.setDate(wa.getDate() - 7); var wc = data.filter(function (d) { return new Date(d.date) >= wa }).length; document.getElementById('statsRow').innerHTML = statCard('fa-users', 'Total', data.length, '+All time') + statCard('fa-calendar-day', 'Today', tc, 'New today') + statCard('fa-calendar-week', 'This Week', wc, 'Last 7 days') + statCard('fa-clock', 'Avg/Day', data.length ? (data.length / Math.max(1, daysSinceFirst(data))).toFixed(1) : '0', 'Since first'); renderWeekChart(data); var r = data.slice(-5).reverse(), l = document.getElementById('recentList'); l.innerHTML = r.length === 0 ? '<li style="color:var(--text-light);">No activity yet</li>' : r.map(function (x) { return '<li class="recent-item"><div class="recent-dot"></div><div class="recent-info"><strong>' + esc(x.name) + '</strong><span>' + esc(x.email) + '</span></div><div class="recent-time">' + timeAgo(x.date) + '</div></li>'; }).join(''); }
+            function statCard(i, l, v, c) { return '<div class="stat-card"><div class="stat-icon"><i class="fas ' + i + '"></i></div><div class="stat-value">' + v + '</div><div class="stat-label">' + l + '</div><div class="stat-change"><i class="fas fa-arrow-up"></i> ' + c + '</div></div>'; }
+            function daysSinceFirst(d) { if (!d.length) return 1; return Math.max(1, Math.round((new Date() - new Date(d[0].date)) / 86400000)) }
+            function renderWeekChart(data) { var c = document.getElementById('weekChart'), days = []; for (var i = 6; i >= 0; i--) { var d = new Date(); d.setDate(d.getDate() - i); days.push({ label: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()], value: data.filter(function (r) { return new Date(r.date).toDateString() === d.toDateString() }).length }) } var max = Math.max.apply(null, days.map(function (d) { return d.value })) || 1; c.innerHTML = days.map(function (d) { return '<div class="mini-bar" style="height:' + Math.max(4, (d.value / max) * 100) + '%;background:linear-gradient(180deg,var(--vibrant-green),var(--sage-mid))"><div class="mini-bar-value">' + (d.value || '') + '</div><div class="mini-bar-label">' + d.label + '</div></div>'; }).join(''); }
+
+            function renderTable() { var data = getData(), s = document.getElementById('searchInput').value.toLowerCase().trim(), df = document.getElementById('dateFilter').value; if (df !== 'all') { var n = new Date(); data = data.filter(function (r) { var rd = new Date(r.date); if (df === 'today') return rd.toDateString() === n.toDateString(); if (df === 'week') { var w = new Date(); w.setDate(w.getDate() - 7); return rd >= w } if (df === 'month') { var m = new Date(); m.setMonth(m.getMonth() - 1); return rd >= m } return true }) } if (s) data = data.filter(function (r) { return (r.name || '').toLowerCase().indexOf(s) !== -1 || (r.email || '').toLowerCase().indexOf(s) !== -1 || (r.phone || '').toLowerCase().indexOf(s) !== -1 || (r.query || '').toLowerCase().indexOf(s) !== -1 }); filteredData = data.reverse(); var tp = Math.max(1, Math.ceil(filteredData.length / ITEMS_PER_PAGE)); if (currentPage > tp) currentPage = tp; var st = (currentPage - 1) * ITEMS_PER_PAGE, pd = filteredData.slice(st, st + ITEMS_PER_PAGE), tb = document.getElementById('tableBody'); if (!filteredData.length) { tb.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><h3>No registrations found</h3></div></td></tr>' } else { tb.innerHTML = pd.map(function (r, i) { return '<tr><td style="color:var(--text-light);font-size:.9rem;font-weight:600;">' + (st + i + 1) + '</td><td style="white-space:nowrap;font-size:.9rem;color:var(--text-light);">' + formatDate(r.date) + '</td><td style="font-weight:700;color:var(--sage-dark);font-size:1rem;">' + esc(r.name) + '</td><td style="color:var(--text-mid);">' + esc(r.email) + '</td><td style="white-space:nowrap;">' + esc(r.phone) + '</td><td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-light);">' + esc(r.query) + '</td><td><div class="row-actions"><button class="btn-row view" onclick="viewDetail(' + (getData().length - 1 - (st + i)) + ')"><i class="fas fa-eye"></i></button><button class="btn-row delete" onclick="confirmDelete(' + (getData().length - 1 - (st + i)) + ')"><i class="fas fa-trash"></i></button></div></td></tr>'; }).join('') } var pg = document.getElementById('pagination'), info = filteredData.length ? 'Showing ' + (st + 1) + '-' + Math.min(st + ITEMS_PER_PAGE, filteredData.length) + ' of ' + filteredData.length : 'No results', btns = '<button class="page-btn" onclick="goPage(' + (currentPage - 1) + ')"' + (currentPage <= 1 ? ' disabled' : '') + '><i class="fas fa-chevron-left"></i></button>'; for (var p = Math.max(1, currentPage - 2); p <= Math.min(tp, currentPage + 2); p++)btns += '<button class="page-btn' + (p === currentPage ? ' active' : '') + '" onclick="goPage(' + p + ')">' + p + '</button>'; btns += '<button class="page-btn" onclick="goPage(' + (currentPage + 1) + ')"' + (currentPage >= tp ? ' disabled' : '') + '><i class="fas fa-chevron-right"></i></button>'; pg.innerHTML = '<div class="page-info">' + info + '</div><div class="page-btns">' + btns + '</div>'; }
+            window.goPage = function (p) { var tp = Math.max(1, Math.ceil(filteredData.length / ITEMS_PER_PAGE)); if (p < 1 || p > tp) return; currentPage = p; renderTable() }
+
+            window.viewDetail = function (i) { var r = getData()[i]; if (!r) return; var ini = (r.name || '?').split(' ').map(function (w) { return w[0] }).join('').toUpperCase().slice(0, 2); document.getElementById('detailContent').innerHTML = '<div class="detail-header"><div class="detail-avatar">' + ini + '</div><div><div class="detail-name">' + esc(r.name) + '</div><div class="detail-date">' + formatDate(r.date) + '</div></div></div><div class="detail-fields"><div class="detail-field"><div class="detail-field-label">Email</div><div class="detail-field-value"><a href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a></div></div><div class="detail-field"><div class="detail-field-label">Phone</div><div class="detail-field-value">' + (r.phone !== '-' ? '<a href="tel:' + esc(r.phone) + '">' + esc(r.phone) + '</a>' : '���') + '</div></div><div class="detail-field"><div class="detail-field-label">Query</div><div class="detail-field-value">' + (r.query !== '-' ? esc(r.query) : '—') + '</div></div></div><div class="detail-actions"><button class="btn-detail primary" onclick="copyContact(' + i + ')"><i class="fas fa-copy"></i> Copy</button><button class="btn-detail danger-outline" onclick="closeModal(\'detailModal\');confirmDelete(' + i + ')"><i class="fas fa-trash"></i> Delete</button></div>'; openModal('detailModal') }
+            window.copyContact = function (i) { var r = getData()[i]; if (!r) return; navigator.clipboard.writeText('Name: ' + r.name + '\nEmail: ' + r.email + '\nPhone: ' + r.phone + '\nQuery: ' + r.query).then(function () { showToast('Copied!', 'success') }).catch(function () { showToast('Failed', 'error') }) }
+
+            var pdi = -1, pda = false;
+            window.confirmDelete = function (i) { pdi = i; pda = false; var r = getData()[i]; document.getElementById('confirmTitle').textContent = 'Delete Registration?'; document.getElementById('confirmMsg').textContent = 'Remove "' + (r ? r.name : '') + '" permanently?'; document.getElementById('confirmBtn').onclick = execDel; openModal('confirmModal') }
+            window.confirmClearAll = function () { pda = true; document.getElementById('confirmTitle').textContent = 'Clear All?'; document.getElementById('confirmMsg').textContent = 'Delete all ' + getData().length + ' registrations?'; document.getElementById('confirmBtn').onclick = execDel; openModal('confirmModal') }
+            function execDel() { if (pda) { localStorage.removeItem('yoga_subs'); showToast('Cleared', 'success') } else if (pdi >= 0) { var d = getData(); d.splice(pdi, 1); localStorage.setItem('yoga_subs', JSON.stringify(d)); showToast('Deleted', 'success') } pdi = -1; pda = false; closeModal('confirmModal'); closeModal('detailModal'); refreshData() }
+
+            function renderAnalytics() { var data = getData(), wp = data.filter(function (d) { return d.phone && d.phone !== '-' }).length, wq = data.filter(function (d) { return d.query && d.query !== '-' }).length; document.getElementById('analyticsStats').innerHTML = statCard('fa-envelope', 'Submissions', data.length, 'All time') + statCard('fa-phone', 'With Phone', wp, Math.round(wp / Math.max(1, data.length) * 100) + '%') + statCard('fa-comment-dots', 'With Message', wq, Math.round(wq / Math.max(1, data.length) * 100) + '%') + statCard('fa-user-plus', 'Today', data.filter(function (d) { return new Date(d.date).toDateString() === new Date().toDateString() }).length, 'New'); var c = document.getElementById('dailyChart'), days = []; for (var i = 13; i >= 0; i--) { var d = new Date(); d.setDate(d.getDate() - i); days.push({ label: (d.getMonth() + 1) + '/' + d.getDate(), value: data.filter(function (r) { return new Date(r.date).toDateString() === d.toDateString() }).length }) } var max = Math.max.apply(null, days.map(function (d) { return d.value })) || 1; c.innerHTML = days.map(function (d) { return '<div class="mini-bar" style="height:' + Math.max(4, (d.value / max) * 100) + '%;background:linear-gradient(180deg,var(--vibrant-gold),var(--warm-gold))"><div class="mini-bar-value">' + (d.value || '') + '</div><div class="mini-bar-label">' + d.label + '</div></div>'; }).join(''); var cloud = document.getElementById('keywordCloud'), words = {}; data.forEach(function (r) { if (!r.query || r.query === '-') return; r.query.toLowerCase().replace(/[.,!?;:]/g, '').split(/\s+/).forEach(function (w) { if (w.length > 3) words[w] = (words[w] || 0) + 1 }) }); var sorted = Object.entries(words).sort(function (a, b) { return b[1] - a[1] }).slice(0, 15); cloud.innerHTML = sorted.length === 0 ? '<span style="color:var(--text-light)">No data</span>' : sorted.map(function (w) { return '<span style="font-size:' + (0.7 + (w[1] / (sorted[0][1] || 1)) * 0.8) + 'rem;color:var(--sage-dark);font-weight:' + (w[1] > 1 ? '700' : '500') + ';padding:.3rem .6rem;background:rgba(175,196,137,.1);border-radius:8px;">' + esc(w[0]) + ' (' + w[1] + ')</span>'; }).join('') }
+
+            window.renderContentEditor = function () {
+                var container = document.getElementById('content-editor-grid');
+                container.innerHTML = '';
+                var saved = JSON.parse(localStorage.getItem('yoga_content') || '{}');
+
+                contentConfig.forEach(function (section) {
+                    var imageFields = section.fields.filter(function (f) { return f.type === 'image'; });
+                    var textFields = section.fields.filter(function (f) { return f.type !== 'image'; });
+
+                    var html = '<div class="editor-section"><h3 class="editor-section-title"><i class="fas ' + section.icon + '"></i> ' + section.title + '</h3>';
+
+                    if (imageFields.length > 0) {
+                        html += '<div class="editor-images-grid">';
+                        imageFields.forEach(function (field) {
+                            html += '<div class="editor-field image-field"><label>' + field.label + '</label>';
+                            html += '<input type="file" id="file_' + field.key + '" class="file-input-hidden" accept=".png,.jpg,.jpeg" onchange="handleFileUpload(\'' + field.key + '\')">';
+                            html += '<input type="text" id="c_' + field.key + '" oninput="updatePrev(\'' + field.key + '\')"><div class="img-preview" id="prev_' + field.key + '" onclick="openFilePicker(\'' + field.key + '\')" ondragover="dragOver(event, \'' + field.key + '\')" ondragleave="dragLeave(event, \'' + field.key + '\')" ondrop="handleDrop(event, \'' + field.key + '\')"><span>Click to browse or drag & drop PNG/JPEG</span><div class="drag-hint">↓ Drop to upload ↓</div></div>';
+                            html += '</div>';
+                        });
+                        html += '</div>';
+                    }
+
+                    if (textFields.length > 0) {
+                        html += '<div class="editor-text-fields">';
+                        textFields.forEach(function (field) {
+                            html += '<div class="editor-field text-field"><label>' + field.label + '</label>';
+                            if (field.type === 'textarea') {
+                                html += '<textarea id="c_' + field.key + '" rows="3"></textarea>';
+                            } else {
+                                html += '<input type="text" id="c_' + field.key + '">';
+                            }
+                            html += '</div>';
+                        });
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+                    container.insertAdjacentHTML('beforeend', html);
+
+                    section.fields.forEach(function (field) {
+                        var el = document.getElementById('c_' + field.key);
+                        if (el) el.value = saved[field.key] !== undefined ? saved[field.key] : field.default;
+                        if (field.type === 'image') updatePrev(field.key);
+                    });
+                });
+            };
+
+            window.updatePrev = function (key) {
+                var prevBox = document.getElementById('prev_' + key);
+                var inputVal = document.getElementById('c_' + key).value;
+                if (prevBox) prevBox.innerHTML = inputVal ? '<img src="' + inputVal + '" alt="Preview" onerror="this.parentNode.innerHTML=\'<span>Invalid image URL</span>\'">' : '<span>Click to browse or drag & drop PNG/JPEG</span><div class="drag-hint">↓ Drop to upload ↓</div>';
+            };
+
+            window.openFilePicker = function (key) {
+                var fileInput = document.getElementById('file_' + key);
+                if (fileInput) fileInput.click();
+            };
+
+            window.dragOver = function (event, key) {
+                event.preventDefault();
+                event.stopPropagation();
+                var prevBox = document.getElementById('prev_' + key);
+                if (prevBox) prevBox.classList.add('drag-over');
+            };
+
+            window.dragLeave = function (event, key) {
+                event.preventDefault();
+                event.stopPropagation();
+                var prevBox = document.getElementById('prev_' + key);
+                if (prevBox) prevBox.classList.remove('drag-over');
+            };
+
+            window.handleDrop = function (event, key) {
+                event.preventDefault();
+                event.stopPropagation();
+                var prevBox = document.getElementById('prev_' + key);
+                if (prevBox) prevBox.classList.remove('drag-over');
+
+                var files = event.dataTransfer.files;
+                if (files.length > 0) {
+                    var file = files[0];
+                    validateAndUploadFile(file, key);
+                }
+            };
+
+            window.handleFileUpload = function (key) {
+                var fileInput = document.getElementById('file_' + key);
+                if (fileInput && fileInput.files.length > 0) {
+                    validateAndUploadFile(fileInput.files[0], key);
+                }
+            };
+
+            function validateAndUploadFile(file, key) {
+                var allowedTypes = ['image/png', 'image/jpeg'];
+                var maxSize = 5 * 1024 * 1024; // 5MB
+
+                if (!allowedTypes.includes(file.type)) {
+                    showToast('Only PNG and JPEG images are supported', 'error');
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    showToast('File size must be less than 5MB', 'error');
+                    return;
+                }
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var dataURL = e.target.result;
+                    var inputEl = document.getElementById('c_' + key);
+                    if (inputEl) {
+                        inputEl.value = dataURL;
+                        updatePrev(key);
+                        showToast('Image uploaded successfully', 'success');
+                    }
+                };
+                reader.onerror = function () {
+                    showToast('Failed to read file', 'error');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            window.saveContent = function () {
+                var data = {};
+                contentConfig.forEach(function (section) {
+                    section.fields.forEach(function (field) {
+                        var el = document.getElementById('c_' + field.key);
+                        if (el) data[field.key] = el.value;
+                    });
+                });
+                localStorage.setItem('yoga_content', JSON.stringify(data));
+                // Update content version so other browsers pick up changes
+                var newVersion = 'v_' + Date.now();
+                localStorage.setItem('yoga_content_version', newVersion);
+
+                // Also save to content.json on the server so changes persist across browsers
+                try {
+                    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    var link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'content.json';
+                    // Auto-download — user should place this file next to index.html on the server
+                    // For server-side auto-save, a backend endpoint would be needed
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                } catch (e) { /* non-critical */ }
+
+                showToast('Content saved locally! For cross-browser sync, upload content.json to your server.', 'success');
+            };
+
+            window.resetContent = function () {
+                localStorage.removeItem('yoga_content');
+                localStorage.removeItem('yoga_content_version');
+                renderContentEditor();
+                showToast('Content reset to defaults', 'info');
+            };
+
+            window.exportCSV = function () { var data = getData(); if (!data.length) { showToast('No data', 'error'); return; } var csv = 'Date,Name,Email,Phone,Query\n'; data.forEach(function (r) { csv += '"' + (r.date || '') + '","' + (r.name || '') + '","' + (r.email || '') + '","' + (r.phone || '') + '","' + (r.query || '').replace(/"/g, '""') + '"\n' }); var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }); var link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'yoga_registrations_' + new Date().toISOString().slice(0, 10) + '.csv'; link.click(); URL.revokeObjectURL(link.href); showToast('Exported!', 'success'); };
+            window.openModal = function (id) { document.getElementById(id).classList.add('active'); };
+            window.closeModal = function (id) { document.getElementById(id).classList.remove('active'); };
+            window.showToast = function (msg, type) { var c = document.getElementById('toastContainer'), t = document.createElement('div'); t.className = 'toast ' + (type || 'info'); t.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : type === 'error' ? 'times-circle' : 'info-circle') + '"></i> ' + msg; c.appendChild(t); setTimeout(function () { t.classList.add('removing'); setTimeout(function () { t.remove() }, 300) }, 3000); };
+
+            function esc(str) { if (!str) return ''; var d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+            function formatDate(ds) { if (!ds) return '—'; var d = new Date(ds); if (isNaN(d)) return ds; return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ' ' + d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0'); }
+            function timeAgo(ds) { var diff = Math.floor((new Date() - new Date(ds)) / 1000); if (diff < 60) return 'Just now'; if (diff < 3600) return Math.floor(diff / 60) + 'm ago'; if (diff < 86400) return Math.floor(diff / 3600) + 'h ago'; if (diff < 604800) return Math.floor(diff / 86400) + 'd ago'; return formatDate(ds); }
+            function debounce(fn, ms) { var t; return function () { var self = this, args = arguments; clearTimeout(t); t = setTimeout(function () { fn.apply(self, args) }, ms) }; }
+        })();
+    </script>
+</body>
+
+</html>

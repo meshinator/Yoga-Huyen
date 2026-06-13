@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoga & Coaching – Trở về với chính mình</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Ibarra+Real+Nova:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        const IMAGES = {
+            hero_bg: "images/hero-bg.png",
+            hero_circle: "images/hero-circle.png",
+            pain1: "images/pain-neck-shoulder.png",
+            pain2: "images/pain-stress.png",
+            pain3: "images/pain-discipline.png",
+            coach: "images/coach.png",
+            solution1: "images/pillar-personal-yoga.png",
+            solution2: "images/pillar-mindfulness.png",
+            solution3: "images/pillar-habit.png",
+            solution4: "images/pillar-nutrition.png",
+            solution5: "images/pillar-breathing.png",
+            package1: "images/package-recovery.png",
+            package2: "images/package-balance.png",
+            package3: "images/package-transform.png",
+            quote_bg: "images/quote-bg.png",
+            coach_health: "images/coach-health.png",
+            coach_yoga1: "images/coach-yoga1.png",
+            coach_yoga2: "images/coach-yoga2.png",
+            coach_yoga3: "images/coach-yoga3.png",
+        };
+
+        // Content version to bust cache across browsers
+        var CONTENT_VERSION = 'v2_20260612';
+
+        // Override IMAGES with persisted content values
+        // Priority: content.json (server-side, shared across browsers) > localStorage (per-browser)
+        (function () {
+            var custom = JSON.parse(localStorage.getItem('yoga_content') || '{}');
+            // Check version — if stale, clear old content so fresh defaults apply
+            var savedVersion = localStorage.getItem('yoga_content_version');
+            if (savedVersion && savedVersion !== CONTENT_VERSION) {
+                localStorage.removeItem('yoga_content');
+                localStorage.setItem('yoga_content_version', CONTENT_VERSION);
+                custom = {};
+            } else if (!savedVersion) {
+                localStorage.setItem('yoga_content_version', CONTENT_VERSION);
+            }
+            Object.keys(custom).forEach(function (key) {
+                // Handle img_* prefixed keys
+                if (key.startsWith('img_')) {
+                    var imgKey = key.replace('img_', '');
+                    IMAGES[imgKey] = custom[key];
+                }
+                // Handle non-prefixed image keys like hero_bg, quote_bg
+                else if (key === 'hero_bg' || key === 'quote_bg') {
+                    IMAGES[key] = custom[key];
+                }
+            });
+
+            // Also try to load from content.json (server-side, shared across browsers)
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'content.json?v=' + CONTENT_VERSION, true);
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    try {
+                        var serverData = JSON.parse(xhr.responseText);
+                        if (serverData && Object.keys(serverData).length > 0) {
+                            Object.keys(serverData).forEach(function (key) {
+                                if (key.startsWith('img_')) {
+                                    var imgKey = key.replace('img_', '');
+                                    IMAGES[imgKey] = serverData[key];
+                                } else if (key === 'hero_bg' || key === 'quote_bg') {
+                                    IMAGES[key] = serverData[key];
+                                }
+                            });
+                            // Re-apply images after server data loaded
+                            applyImages();
+                            // Also update text content
+                            applyServerText(serverData);
+                        }
+                    } catch (e) { /* ignore parse errors */ }
+                }
+            };
+            xhr.send();
+        })();
+
+        // Load Site Settings (logo, title, music) from localStorage
+        (function () {
+            var settings = JSON.parse(localStorage.getItem('yoga_content') || '{}');
+
+            // Update page title
+            if (settings.site_title) {
+                document.title = settings.site_title;
+            }
+
+            // Update logo (image and text)
+            if (settings.site_logo || settings.site_logo_image) {
+                setTimeout(function () {
+                    var logoEl = document.querySelector('.nav-logo');
+                    if (logoEl) {
+                        var logoHTML = '';
+
+                        // Add logo image if available
+                        if (settings.site_logo_image) {
+                            logoHTML += '<img src="' + settings.site_logo_image + '" alt="Logo" style="height: 28px; width: auto; border-radius: 50%;">';
+                        } else {
+                            // Keep the ☯ icon if no image
+                            logoHTML += '<div class="nav-logo-icon">☯</div>';
+                        }
+
+                        // Add logo text
+                        logoHTML += ' ' + (settings.site_logo || 'YogaCoach');
+                        logoEl.innerHTML = logoHTML;
+                    }
+                }, 100);
+            }
+
+            // Load background music
+            if (settings.site_music_url && settings.site_music_url.trim()) {
+                window.musicURL = settings.site_music_url;
+            }
+        })();
+    </script>
+
+    <style>
+        :root {
+            --sage-light: #cbd8b3;
+            --sage-mid: #afc489;
+            --sage-dark: #3f5714;
+            --warm-gold: #a89672;
+            --cream: #f5f2ec;
+            --cream-dark: #ede8de;
+            --text-dark: #2a3a10;
+            --text-mid: #3f5714;
+            --text-light: #6b7c4a;
+            --vibrant-green: #7cb342;
+            --vibrant-gold: #d4a853;
+            --deep-forest: #1b3a0a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, .9);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(175, 196, 137, .2);
+            padding: 0 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            transition: box-shadow .3s;
+        }
+
+        nav.scrolled {
+            box-shadow: 0 4px 30px rgba(63, 87, 20, .08);
+        }
+
+        .nav-logo {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--sage-mid), var(--sage-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--cream);
+            font-size: .65rem;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            font-size: .875rem;
+            color: var(--text-light);
+            font-weight: 500;
+            letter-spacing: .03em;
+            transition: color .2s;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--vibrant-green);
+            transition: width .3s;
+            border-radius: 1px;
+        }
+
+        .nav-links a:hover {
+            color: var(--sage-dark);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--sage-dark), var(--deep-forest)) !important;
+            color: var(--cream) !important;
+            padding: .55rem 1.2rem;
+            border-radius: 100px !important;
+            transition: transform .2s, box-shadow .2s !important;
+        }
+
+        .nav-cta::after {
+            display: none !important;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 16px rgba(63, 87, 20, .3) !important;
+        }
+
+        .nav-admin {
+            font-size: .8rem !important;
+            color: var(--warm-gold) !important;
+            border: 1px solid rgba(168, 150, 114, .3);
+            padding: .3rem .8rem;
+            border-radius: 100px;
+        }
+
+        .lang-toggle {
+            display: flex;
+            background: var(--cream-dark);
+            border-radius: 100px;
+            padding: 3px;
+            border: 1px solid rgba(175, 196, 137, .3);
+        }
+
+        .lang-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            font-size: .75rem;
+            font-weight: 600;
+            padding: .3rem .7rem;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .lang-btn.active {
+            background: var(--sage-dark);
+            color: var(--cream);
+        }
+
+        .sound-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 99;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1.5px solid var(--sage-light);
+            background: rgba(245, 242, 236, .9);
+            backdrop-filter: blur(8px);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .3s;
+            box-shadow: 0 4px 12px rgba(63, 87, 20, .1);
+        }
+
+        .sound-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .sound-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--sage-dark);
+        }
+
+        .sound-toggle.muted svg .sound-waves {
+            opacity: 0;
+        }
+
+        /* HERO */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: #ffffff;
+            position: relative;
+            overflow: hidden;
+            padding: 6rem 2rem;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(245, 242, 236, .85);
+            backdrop-filter: blur(3px);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+        }
+
+        .hero-circle-wrap {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 3rem;
+        }
+
+        .hero-circle-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid rgba(255, 255, 255, .8);
+            box-shadow: 0 20px 40px rgba(63, 87, 20, .12);
+            animation: heroFloat 6s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-circle-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hero-circle-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px dashed rgba(175, 196, 137, .5);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .ring1 {
+            width: 240px;
+            height: 240px;
+            animation: spin 20s linear infinite;
+        }
+
+        .ring2 {
+            width: 280px;
+            height: 280px;
+            border-style: dotted;
+            opacity: .5;
+            animation: spin 30s linear infinite reverse;
+        }
+
+        @keyframes heroFloat {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-15px)
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg)
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg)
+            }
+        }
+
+        .hero-eyebrow {
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: .25em;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeInUp .8s .3s ease forwards;
+        }
+
+        .hero-title-gradient {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--sage-mid), var(--sage-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+            line-height: 1.1;
+            opacity: 0;
+            animation: fadeInUp 1s .5s ease forwards;
+        }
+
+        .hero-sub {
+            font-size: 1.15rem;
+            color: var(--text-light);
+            max-width: 650px;
+            margin: 0 auto;
+            line-height: 1.9;
+            opacity: 0;
+            animation: fadeInUp .8s .8s ease forwards;
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .5rem;
+            opacity: 0;
+            animation: fadeInUp .8s 1.5s ease forwards;
+            z-index: 2;
+        }
+
+        .hero-scroll span {
+            font-size: 1rem;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--text-mid);
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 44px;
+            background: linear-gradient(180deg, var(--sage-dark), transparent);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+
+        .scroll-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--sage-dark);
+            border-radius: 50%;
+            animation: scrollDot 2s ease-in-out infinite;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        @keyframes scrollPulse {
+
+            0%,
+            100% {
+                opacity: .2;
+                transform: scaleY(1) translateY(0)
+            }
+
+            50% {
+                opacity: 1;
+                transform: scaleY(.65) translateY(4px)
+            }
+        }
+
+        @keyframes scrollDot {
+
+            0%,
+            100% {
+                opacity: .3;
+                transform: translateY(0)
+            }
+
+            50% {
+                opacity: 1;
+                transform: translateY(8px)
+            }
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(124, 179, 66, .3)
+            }
+
+            50% {
+                box-shadow: 0 0 20px 4px rgba(124, 179, 66, .15)
+            }
+        }
+
+        /* COMMON */
+        section {
+            padding: 6rem 2rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-eyebrow {
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--vibrant-gold);
+            margin-bottom: .75rem;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .section-eyebrow::before {
+            content: '';
+            width: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--vibrant-gold), transparent);
+            border-radius: 1px;
+        }
+
+        .section-title {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            color: var(--sage-dark);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .section-sub {
+            font-size: 1rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin-bottom: 3rem;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity .65s ease, transform .65s ease;
+        }
+
+        .reveal.in {
+            opacity: 1;
+            transform: none;
+        }
+
+        .reveal-delay-1 {
+            transition-delay: .1s;
+        }
+
+        .reveal-delay-2 {
+            transition-delay: .2s;
+        }
+
+        .reveal-delay-3 {
+            transition-delay: .3s;
+        }
+
+        .reveal-delay-4 {
+            transition-delay: .4s;
+        }
+
+        .divider-line {
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--vibrant-gold), var(--warm-gold));
+            border-radius: 2px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* PAIN */
+        .pain-section {
+            background: linear-gradient(180deg, var(--cream-dark) 0%, var(--cream) 100%);
+            position: relative;
+        }
+
+        .pain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .pain-card {
+            background: var(--cream);
+            border: 1px solid rgba(175, 196, 137, .3);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform .3s cubic-bezier(.25, .46, .45, .94), box-shadow .3s;
+            position: relative;
+        }
+
+        .pain-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--sage-mid), var(--vibrant-green));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .4s ease;
+        }
+
+        .pain-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .pain-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 48px rgba(63, 87, 20, .12);
+        }
+
+        .pain-card-img-wrap {
+            overflow: hidden;
+        }
+
+        .pain-card-img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            display: block;
+            transition: transform .6s ease;
+        }
+
+        .pain-card:hover .pain-card-img {
+            transform: scale(1.05);
+        }
+
+        .pain-card-body {
+            padding: 1.75rem;
+        }
+
+        .pain-icon {
+            font-size: 1.5rem;
+            margin-bottom: .75rem;
+        }
+
+        .pain-card h3 {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+            margin-bottom: .6rem;
+        }
+
+        .pain-card p {
+            font-size: .875rem;
+            color: var(--text-light);
+            line-height: 1.75;
+        }
+
+        /* COMBINED SOLUTION */
+        .combined-solution {
+            background: var(--cream);
+            position: relative;
+        }
+
+        .combined-top {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 4rem;
+            align-items: center;
+            margin-bottom: 5rem;
+        }
+
+        .solution-question {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .solution-img-center {
+            max-width: 320px;
+            margin: 0 auto 2rem;
+        }
+
+        .answer-block {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2.5rem 2rem;
+            background: linear-gradient(135deg, rgba(237, 232, 222, .5), rgba(245, 242, 236, .8));
+            border: 1.5px solid rgba(175, 196, 137, .25);
+            border-radius: 24px;
+        }
+
+        .answer-label {
+            display: inline-block;
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            color: white;
+            background: linear-gradient(135deg, var(--sage-dark), var(--vibrant-green));
+            padding: .35rem 1.2rem;
+            border-radius: 20px;
+            margin-bottom: 1.25rem;
+        }
+
+        .coach-img-wrap {
+            position: relative;
+        }
+
+        .coach-img {
+            width: 100%;
+            border-radius: 24px;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            display: block;
+            box-shadow: 0 20px 52px rgba(63, 87, 20, .14);
+        }
+
+        .coach-img-glow {
+            position: absolute;
+            inset: -20px;
+            border-radius: 34px;
+            background: linear-gradient(135deg, rgba(124, 179, 66, .1), rgba(212, 168, 83, .1));
+            z-index: -1;
+            animation: pulseGlow 4s ease-in-out infinite;
+        }
+
+        .coach-quote {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--sage-dark);
+            line-height: 1.6;
+            margin: 1.5rem 0;
+            padding-left: 1.25rem;
+            border-left: 3px solid;
+            border-image: linear-gradient(180deg, var(--vibrant-gold), var(--warm-gold)) 1;
+        }
+
+        .coach-text {
+            font-size: .92rem;
+            color: var(--text-light);
+            line-height: 1.85;
+            margin-bottom: 1.5rem;
+        }
+
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+        }
+
+        .pillar-card {
+            background: var(--cream-dark);
+            border: 1.5px solid rgba(175, 196, 137, .3);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all .3s ease;
+        }
+
+        .pillar-card:hover {
+            background: white;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(63, 87, 20, .1);
+        }
+
+        .pillar-img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            display: block;
+        }
+
+        .pillar-card-body {
+            padding: 1.5rem;
+        }
+
+        .pillar-card h3 {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+            margin-bottom: .5rem;
+        }
+
+        .pillar-card p {
+            font-size: .82rem;
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        /* PACKAGES */
+        .packages-section {
+            background: linear-gradient(180deg, var(--cream-dark), var(--cream));
+            position: relative;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .pkg-card {
+            background: var(--cream);
+            border: 1.5px solid rgba(175, 196, 137, .3);
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            transition: transform .3s, box-shadow .3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pkg-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 48px rgba(63, 87, 20, .12);
+        }
+
+        .pkg-card.featured {
+            border-color: var(--sage-dark);
+            background: white;
+            box-shadow: 0 12px 40px rgba(63, 87, 20, .1);
+        }
+
+        .pkg-card-img-wrap {
+            overflow: hidden;
+        }
+
+        .pkg-card-img {
+            width: 100%;
+            aspect-ratio: 16/7;
+            object-fit: cover;
+            display: block;
+            transition: transform .6s;
+        }
+
+        .pkg-card:hover .pkg-card-img {
+            transform: scale(1.05);
+        }
+
+        .pkg-badge {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--sage-dark), var(--deep-forest));
+            color: var(--cream);
+            font-size: .68rem;
+            font-weight: 600;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            padding: .35rem 1.2rem;
+            border-radius: 100px;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(63, 87, 20, .3);
+            z-index: 2;
+        }
+
+        .pkg-body {
+            padding: 2rem 2rem 2.25rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pkg-tag {
+            font-size: .68rem;
+            font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--vibrant-gold);
+            margin-bottom: .4rem;
+        }
+
+        .pkg-card h3 {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+            margin-bottom: .5rem;
+        }
+
+        .pkg-desc {
+            font-size: .85rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 1.75;
+        }
+
+        .pkg-features {
+            list-style: none;
+            margin-bottom: 1.75rem;
+            flex: 1;
+        }
+
+        .pkg-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: .75rem;
+            padding: .55rem 0;
+            font-size: .85rem;
+            color: var(--text-light);
+            border-bottom: 1px solid rgba(175, 196, 137, .2);
+        }
+
+        .pkg-features li:last-child {
+            border-bottom: none;
+        }
+
+        .feat-check {
+            color: var(--vibrant-green);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .pkg-price {
+            margin-bottom: 1.5rem;
+        }
+
+        .price-old {
+            font-size: .82rem;
+            color: var(--warm-gold);
+            text-decoration: line-through;
+            margin-bottom: .2rem;
+        }
+
+        .price-new {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+            line-height: 1;
+        }
+
+        .price-note {
+            font-size: .72rem;
+            color: var(--text-light);
+            margin-top: .4rem;
+            font-style: italic;
+        }
+
+        /* ABOUT US SECTION */
+        .about-section {
+            background: var(--cream-dark);
+            position: relative;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .about-card {
+            background: var(--cream);
+            border: 1px solid rgba(175, 196, 137, .3);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform .3s, box-shadow .3s;
+        }
+
+        .about-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 40px rgba(63, 87, 20, .12);
+        }
+
+        .about-card-img {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            display: block;
+        }
+
+        .about-card-body {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .about-card h3 {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--sage-dark);
+            margin-bottom: .25rem;
+        }
+
+        .about-card-role {
+            font-size: .75rem;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--vibrant-gold);
+            margin-bottom: .75rem;
+        }
+
+        .about-card p {
+            font-size: .82rem;
+            color: var(--text-light);
+            line-height: 1.65;
+        }
+
+        /* TIMELINE */
+        .timeline-section {
+            background: var(--cream);
+            position: relative;
+        }
+
+        .timeline {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            margin-top: 3rem;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 12.5%;
+            right: 12.5%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--sage-light), var(--sage-mid), var(--sage-light));
+        }
+
+        .timeline-step {
+            text-align: center;
+            padding: 0 1rem;
+            position: relative;
+        }
+
+        .tl-dot {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--sage-mid), var(--vibrant-green));
+            border-radius: 50%;
+            margin: 0 auto 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: .85rem;
+            color: white;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 4px 12px rgba(124, 179, 66, .3);
+            transition: transform .3s, box-shadow .3s;
+        }
+
+        .timeline-step:hover .tl-dot {
+            transform: scale(1.15);
+            box-shadow: 0 6px 20px rgba(124, 179, 66, .4);
+        }
+
+        .timeline-step h4 {
+            font-weight: 600;
+            font-size: .8rem;
+            color: var(--sage-dark);
+            margin-bottom: .5rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        .timeline-step p {
+            font-size: .85rem;
+            color: var(--text-light);
+            line-height: 1.65;
+        }
+
+        /* QUOTE */
+        .quote-section {
+            background: linear-gradient(160deg, var(--deep-forest), var(--sage-dark));
+            text-align: center;
+            padding: 7rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quote-bg-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .06;
+            pointer-events: none;
+        }
+
+        .quote-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .quote-mark {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: 6rem;
+            color: var(--sage-mid);
+            opacity: .2;
+            line-height: 1;
+            margin-bottom: -2rem;
+        }
+
+        .quote-text {
+            font-family: 'Ibarra Real Nova', serif;
+            font-size: clamp(1.4rem, 3vw, 2.3rem);
+            font-style: italic;
+            font-weight: 400;
+            color: var(--sage-light);
+            max-width: 780px;
+            margin: 0 auto 1.25rem;
+            line-height: 1.55;
+        }
+
+        .quote-attr {
+            font-size: .78rem;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--vibrant-gold);
+        }
+
+        /* CTA */
+        .cta-section {
+            background: linear-gradient(180deg, var(--cream), var(--cream-dark));
+            text-align: center;
+            padding: 7rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-sub {
+            font-size: 1rem;
+            color: var(--text-light);
+            max-width: 480px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .cta-limit {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(212, 168, 83, .12), rgba(212, 168, 83, .06));
+            border: 1px solid var(--vibrant-gold);
+            color: var(--vibrant-gold);
+            border-radius: 100px;
+            padding: .5rem 1.5rem;
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: .06em;
+            margin-bottom: 2rem;
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        .contact-row {
+            display: flex;
+            gap: 2.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2.5rem;
+            font-size: .88rem;
+            color: var(--text-light);
+        }
+
+        .contact-row a {
+            color: var(--sage-dark);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .contact-row a:hover {
+            color: var(--vibrant-green);
+        }
+
+        /* BUTTONS */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--sage-dark), var(--deep-forest));
+            color: var(--cream);
+            padding: .875rem 2rem;
+            border-radius: 100px;
+            font-size: .9rem;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: .03em;
+            transition: all .3s;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(63, 87, 20, .2);
+            font-family: inherit;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(63, 87, 20, .3);
+        }
+
+        .btn-outline {
+            border: 1.5px solid var(--sage-dark);
+            color: var(--sage-dark);
+            padding: .875rem 2rem;
+            border-radius: 100px;
+            font-size: .9rem;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: .03em;
+            transition: all .3s;
+            display: inline-block;
+            background: transparent;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-outline:hover {
+            background: var(--sage-light);
+            transform: translateY(-2px);
+        }
+
+        /* MODALS */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(27, 58, 10, .6);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--cream);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 24px 64px rgba(27, 58, 10, .3);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: color .2s;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--sage-dark);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--sage-dark);
+            margin-bottom: .4rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: .75rem 1rem;
+            border: 1.5px solid var(--sage-light);
+            border-radius: 12px;
+            background: white;
+            font-family: inherit;
+            font-size: .9rem;
+            color: var(--text-dark);
+            transition: border-color .2s;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--sage-dark);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-error {
+            color: red;
+            font-size: .75rem;
+            margin-top: .25rem;
+            display: none;
+        }
+
+        .form-success {
+            color: #2e7d32;
+            font-size: .95rem;
+            text-align: center;
+            padding: 1.25rem;
+            background: rgba(124, 179, 66, .1);
+            border: 1px solid rgba(124, 179, 66, .3);
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            display: none;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            font-size: .85rem;
+        }
+
+        .admin-table th {
+            background: var(--sage-dark);
+            color: var(--cream);
+            padding: .75rem;
+            text-align: left;
+            font-size: .75rem;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+
+        .admin-table td {
+            padding: .75rem;
+            border-bottom: 1px solid var(--sage-light);
+            color: var(--text-dark);
+            vertical-align: top;
+        }
+
+        footer {
+            background: var(--deep-forest);
+            color: rgba(203, 216, 179, .4);
+            text-align: center;
+            padding: 2.5rem;
+            font-size: .78rem;
+            letter-spacing: .04em;
+            border-top: 1px solid rgba(175, 196, 137, .1);
+        }
+
+        footer span {
+            color: var(--sage-mid);
+        }
+
+        @media(max-width:900px) {
+            .hero {
+                padding: 6rem 1.5rem;
+            }
+
+            .hero-circle-wrap {
+                width: 160px;
+                height: 160px;
+                margin-bottom: 2.5rem;
+            }
+
+            .ring1 {
+                width: 200px;
+                height: 200px;
+            }
+
+            .ring2 {
+                width: 240px;
+                height: 240px;
+            }
+
+            .combined-top {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+
+            .pillars-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .timeline {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .timeline::before {
+                display: none;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            nav {
+                padding: 0 1.5rem;
+            }
+        }
+
+        @media(max-width:600px) {
+            section {
+                padding: 4rem 1.25rem;
+            }
+
+            .pillars-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .packages-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav id="mainNav">
+        <a href="#" class="nav-logo">
+            <div class="nav-logo-icon">☯</div> YogaCoach
+        </a>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="#about" data-i18n="nav_about">Về chúng tôi</a></li>
+                <li><a href="#pain" data-i18n="nav_pain">Vấn đề</a></li>
+                <li><a href="#solution" data-i18n="nav_solution">Giải pháp</a></li>
+                <li><a href="#packages" data-i18n="nav_packages">Gói dịch vụ</a></li>
+                <li><a href="https://calendly.com/" target="_blank" class="nav-cta" data-i18n="nav_cta">Đặt lịch tư vấn
+                        miễn phí</a></li>
+                <li><a href="admin.html" class="nav-admin" target="_blank">Admin</a></li>
+            </ul>
+            <div class="lang-toggle">
+                <button class="lang-btn active" id="langVi" onclick="setLang('vi')">VN</button>
+                <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- SOUND TOGGLE -->
+    <button class="sound-toggle muted" id="soundToggle" aria-label="Bật/Tắt âm thanh">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11 5L6 9H2v6h4l5 4V5z" />
+            <g class="sound-waves">
+                <path d="M15.54 8.46a5 5 0 010 7.07" stroke="currentColor" stroke-width="1.5" fill="none"
+                    stroke-linecap="round" />
+                <path d="M19.07 4.93a10 10 0 010 14.14" stroke="currentColor" stroke-width="1.5" fill="none"
+                    stroke-linecap="round" />
+            </g>
+        </svg>
+    </button>
+
+    <!-- HERO -->
+    <section class="hero" id="hero">
+        <div class="hero-overlay"></div>
+
+        <div class="hero-content">
+            <div class="hero-circle-wrap">
+                <div class="hero-circle-img">
+                    <img id="img-hero_circle" src="" alt="Yoga" />
+                </div>
+                <div class="hero-circle-ring ring1"></div>
+                <div class="hero-circle-ring ring2"></div>
+            </div>
+
+            <p class="hero-eyebrow" data-i18n="hero_eyebrow">CÂN BẰNG · CHUYÊN HÓA · TRỌN VẸN</p>
+            <h1 class="hero-title-gradient" data-i18n="hero_h1">Trở về với chính mình</h1>
+            <p class="hero-sub" data-i18n="hero_sub">Chương trình yoga và coaching cá nhân hóa — giúp bạn nâng cao thể
+                chất, làm chủ tâm trí và sống trọn vẹn hơn mỗi ngày.</p>
+        </div>
+
+        <div class="hero-scroll">
+            <div class="scroll-dot"></div>
+            <div class="scroll-line"></div><span data-i18n="hero_scroll">Khám phá</span>
+        </div>
+    </section>
+
+    <!-- PAIN POINTS -->
+    <section class="pain-section" id="pain">
+        <div class="container">
+            <p class="section-eyebrow reveal" data-i18n="pain_eyebrow">Bạn có đang trải qua?</p>
+            <h2 class="section-title reveal" data-i18n="pain_title">Bạn có đang "kiệt sức" thầm lặng?</h2>
+            <p class="section-sub reveal" data-i18n="pain_sub">Dân văn phòng hiện đại đang đối mặt với những hệ lụy sức
+                khỏe nghiêm trọng từ bàn làm việc, nhưng thường bị ngó lơ.</p>
+            <div class="pain-grid">
+                <div class="pain-card reveal">
+                    <div class="pain-card-img-wrap"><img class="pain-card-img" id="img-pain1" src="" alt="Neck pain" />
+                    </div>
+                    <div class="pain-card-body">
+
+                        <p data-i18n="pain_p_1">Cảm giác cứng đơ, đau nhức dai dẳng sau 8 tiếng ngồi máy tính. Cơ thể
+                            nặng nề và thiếu linh hoạt.</p>
+                    </div>
+                </div>
+                <div class="pain-card reveal reveal-delay-1">
+                    <div class="pain-card-img-wrap"><img class="pain-card-img" id="img-pain2" src="" alt="Stress" />
+                    </div>
+                    <div class="pain-card-body">
+
+                        <p data-i18n="pain_p_2">Mất tập trung, sụt giảm hiệu suất. Luôn thấy mệt mỏi dù đã ngủ đủ giấc,
+                            tinh thần lo âu.</p>
+                    </div>
+                </div>
+                <div class="pain-card reveal reveal-delay-2">
+                    <div class="pain-card-img-wrap"><img class="pain-card-img" id="img-pain3" src="" alt="Discipline" />
+                    </div>
+                    <div class="pain-card-body">
+
+                        <p data-i18n="pain_p_3">Mua thẻ Gym rồi bỏ phí. Muốn thay đổi nhưng luôn bị trì hoãn — vòng lặp
+                            không hồi kết.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMBINED: COACH + WHY + PILLARS -->
+    <section class="combined-solution" id="solution">
+        <div class="container">
+            <!-- Question: Bạn Có Biết? -->
+            <div class="solution-question reveal">
+                <div class="coach-img-wrap solution-img-center">
+                    <div class="coach-img-glow"></div>
+                    <img class="coach-img" id="img-coach" src="" alt="Your coach" />
+                </div>
+                <p class="section-eyebrow" style="justify-content:center;display:flex;" data-i18n="sol_eyebrow">Bạn Có
+                    Biết?</p>
+                <div class="divider-line" style="margin:0 auto .75rem;"></div>
+            </div>
+
+            <!-- Answer 1: Thể Chất + Tư Duy -->
+            <div class="answer-block reveal">
+                <div class="answer-label" data-i18n="sol_answer1_label">Giải pháp thứ nhất</div>
+                <h2 class="section-title" style="text-align:center;" data-i18n="sol_title">Thể Chất + Tư Duy =<br>Thay
+                    Đổi Thật Sự</h2>
+                <p class="coach-text" style="text-align:center;max-width:640px;margin-left:auto;margin-right:auto;"
+                    data-i18n="sol_text">Yoga giải quyết <strong style="color:var(--sage-dark)">"Phần Ngọn"</strong>
+                    (thể chất), nhưng Coaching mới thay đổi
+                    <strong style="color:var(--sage-dark)">"Phần Gốc"</strong> (thói quen).
+                </p>
+            </div>
+
+            <!-- Answer 2: 5 Trụ Cột -->
+            <div class="answer-block reveal">
+                <div class="answer-label" data-i18n="sol_answer2_label">Giải pháp thứ hai</div>
+                <h2 class="section-title" style="text-align:center;" data-i18n="pillar_title">5 Trụ Cột Của Chương
+                    Trình</h2>
+                <p class="section-sub" style="text-align:center;margin-left:auto;margin-right:auto;"
+                    data-i18n="pillar_sub">Nhấn vào từng trụ cột để khám phá chi tiết cách chúng tác động lên thể chất,
+                    tinh
+                    thần và thói quen của bạn.</p>
+            </div>
+
+            <div class="pillars-grid">
+                <div class="pillar-card reveal">
+                    <img class="pillar-img" id="img-solution1" src="" alt="Exercise" />
+                    <div class="pillar-card-body">
+                        <h3 data-i18n="pillar1_h3">Vận Động Đúng Cách</h3>
+                        <p data-i18n="pillar1_p">Bài tập thiết kế riêng cho tình trạng cột sống và cơ địa của bạn —
+                            không phải giáo án đại trà.</p>
+                    </div>
+                </div>
+                <div class="pillar-card reveal reveal-delay-1">
+                    <img class="pillar-img" id="img-solution2" src="" alt="Eating" />
+                    <div class="pillar-card-body">
+                        <h3 data-i18n="pillar2_h3">Ăn Uống Đúng Cách</h3>
+                        <p data-i18n="pillar2_p">Mẹo ăn uống lành mạnh mà không cần ăn kiêng khắt khe hay đếm
+                            calories.</p>
+                    </div>
+                </div>
+                <div class="pillar-card reveal reveal-delay-2">
+                    <img class="pillar-img" id="img-solution3" src="" alt="Breathing" />
+                    <div class="pillar-card-body">
+                        <h3 data-i18n="pillar3_h3">Hơi Thở Đúng Cách</h3>
+                        <p data-i18n="pillar3_p">Kỹ thuật hít thở sâu giúp giảm stress tức thì, tăng oxy cho não và
+                            cân bằng hệ thần kinh.</p>
+                    </div>
+                </div>
+                <div class="pillar-card reveal reveal-delay-3">
+                    <img class="pillar-img" id="img-solution4" src="" alt="Relaxing" />
+                    <div class="pillar-card-body">
+                        <h3 data-i18n="pillar4_h3">Thư Giãn Đúng Cách</h3>
+                        <p data-i18n="pillar4_p">Học cách "ngắt kết nối" công việc để tái tạo năng lượng tinh thần sâu
+                            và bền vững.</p>
+                    </div>
+                </div>
+                <div class="pillar-card reveal reveal-delay-4">
+                    <img class="pillar-img" id="img-solution5" src="" alt="Thinking" />
+                    <div class="pillar-card-body">
+                        <h3 data-i18n="pillar5_h3">Tư Duy Tích Cực</h3>
+                        <p data-i18n="pillar5_p">Đồng hành nhắc nhở và xây dựng thói quen suy nghĩ tích cực mỗi ngày,
+                            chuyển hóa góc nhìn từ hạn chế sang phát triển.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PACKAGES -->
+    <section class="packages-section" id="packages">
+        <div class="container">
+            <p class="section-eyebrow reveal" style="justify-content:center;display:flex;" data-i18n="pkg_eyebrow">
+                Chương trình trải nghiệm — Founder's Offer</p>
+            <h2 class="section-title reveal" style="text-align:center;" data-i18n="pkg_title">Chọn Gói Phù Hợp Với Bạn
+            </h2>
+            <p class="section-sub reveal" style="text-align:center;margin-left:auto;margin-right:auto;"
+                data-i18n="pkg_sub">Cơ hội duy nhất để sở hữu lộ trình cao cấp với mức phí ưu đãi đặc biệt dành cho
+                những người đầu tiên.</p>
+
+            <div class="packages-grid">
+                <div class="pkg-card reveal">
+                    <div class="pkg-card-img-wrap"><img class="pkg-card-img" id="img-package1" src="" alt="30 day" />
+                    </div>
+                    <div class="pkg-body">
+                        <p class="pkg-tag" data-i18n="pkg1_tag">Gói 01</p>
+                        <h3 data-i18n="pkg1_h3">Phục Hồi<br>30 Ngày</h3>
+                        <p class="pkg-desc" data-i18n="pkg1_desc">Dành cho người muốn "cấp cứu" nhanh các vấn đề đau mỏi
+                            và stress tích tụ.</p>
+                        <ul class="pkg-features">
+                            <li><span class="feat-check">✓</span> <span data-i18n="pkg1_f1">08 buổi Yoga Private
+                                    1-1</span></li>
+                            <li><span class="feat-check">✓</span> <span data-i18n="pkg1_f2">02 phiên Coaching kỷ
+                                    luật</span></li>
+                            <li><span class="feat-check">✓</span> <span data-i18n="pkg1_f3">Hỗ trợ Zalo 30 ngày</span>
+                            </li>
+                        </ul>
+                        <div class="pkg-price">
+                            <p class="price-old">3.500.000đ</p>
+                            <div class="price-new">2.490.000đ</div>
+                            <p class="price-note" data-i18n="pkg1_note">* Giới hạn 03 suất đầu tiên</p>
+                        </div>
+                        <button class="btn-outline" style="display:block;text-align:center;width:100%;"
+                            onclick="openModal('registerModal')" data-i18n="pkg_cta">Đăng ký ngay</button>
+                    </div>
+                </div>
+
+                <div class="pkg-card featured reveal reveal-delay-1">
+                    <div class="pkg-badge" data-i18n="pkg2_badge">Phổ biến nhất</div>
+                    <div class="pkg-card-img-wrap"><img class="pkg-card-img" id="img-package2" src="" alt="60 day" />
+                    </div>
+                    <div class="pkg-body">
+                        <p class="pkg-tag" data-i18n="pkg2_tag">Gói 02</p>
+                        <h3 data-i18n="pkg2_h3">Cân Bằng<br>60 Ngày</h3>
+                        <p class="pkg-desc" data-i18n="pkg2_desc">Hành trình cân bằng thể chất và tinh thần, thiết lập
+                            nền tảng thói quen bền vững.</p>
+                        <ul class="pkg-features">
+                            <li><span class="feat-check">✓</span> <span data-i18n="pkg2_f1">16 buổi Yoga Private chuyên
+                                    sâu</span></li>
+                            <li><span class="feat-check">✓</span> <span data-i18n="pkg2_f2">04 phiên Coaching kiến tạo
+                                    lối sống</span></li>
+                            <li><span class="feat-check">✓</span> <span data-i18n="pkg2_f3">Hỗ trợ Zalo suốt 60
+                                    ngày</span></li>
+                        </ul>
+                        <div class="pkg-price">
+                            <p class="price-old">6.500.000đ</p>
+                            <div class="price-new">4.490.000đ</div>
+                            <p class="price-note" data-i18n="pkg2_note">* Giới hạn 03 suất đầu tiên</p>
+                        </div>
+                        <button class="btn-primary" style="display:block;text-align:center;width:100%;"
+                            onclick="openModal('registerModal')" data-i18n="pkg_cta">Đăng ký ngay</button>
+                    </div>
+                </div>
+
+                <div class="pkg-card reveal reveal-delay-2">
+                    <div class="pkg-badge"
+                        style="background:linear-gradient(135deg,var(--vibrant-gold),var(--warm-gold));color:var(--deep-forest);"
+                        data-i18n="pkg3_badge">Chuyển hóa sâu</div>
+                    <div class="pkg-card-img-wrap"><img class="pkg-card-img" id="img-package3" src="" alt="90 day" />
+                    </div>
+                    <div class="pkg-body">
+                        <p class="pkg-tag" data-i18n="pkg3_tag">Gói 03</p>
+                        <h3 data-i18n="pkg3_h3">Chuyển Hóa<br>90 Ngày</h3>
+                        <p class="pkg-desc" data-i18n="pkg3_desc">Hành trình thay đổi toàn diện từ tư duy đến vóc dáng,
+                            cam kết lột xác bền vững.</p>
+                        <ul class="pkg-features">
+                            <li><span class="feat-check">✓</span> <span data-i18n="pkg3_f1">24 buổi Yoga Private chuyên
+                                    sâu</span></li>
+                            <li><span class="feat-check">✓</span> <span data-i18n="pkg3_f2">06 phiên Coaching kiến tạo
+                                    lối sống</span></li>
+                            <li><span class="feat-check">✓</span> <span data-i18n="pkg3_f3">Tặng E-book tự tập & mẹo ăn
+                                    uống</span></li>
+                            <li><span class="feat-check">✓</span> <span data-i18n="pkg3_f4">Hỗ trợ Zalo suốt 90
+                                    ngày</span></li>
+                        </ul>
+                        <div class="pkg-price">
+                            <p class="price-old">9.800.000đ</p>
+                            <div class="price-new">6.990.000đ</div>
+                            <p class="price-note" data-i18n="pkg3_note">* Giới hạn 02 suất đầu tiên</p>
+                        </div>
+                        <button class="btn-outline" style="display:block;text-align:center;width:100%;"
+                            onclick="openModal('registerModal')" data-i18n="pkg_cta">Đăng ký ngay</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT US SECTION -->
+    <section class="about-section" id="about">
+        <div class="container">
+            <p class="section-eyebrow reveal" style="justify-content:center;display:flex;" data-i18n="about_eyebrow">Đội
+                ngũ chuyên gia</p>
+            <h2 class="section-title reveal" style="text-align:center;" data-i18n="about_title">Về Chúng Tôi</h2>
+            <p class="section-sub reveal" style="text-align:center;margin-left:auto;margin-right:auto;"
+                data-i18n="about_sub">Đội ngũ huấn luyện viên giàu kinh nghiệm, tận tâm đồng hành cùng bạn trên hành
+                trình chuyển hóa.</p>
+
+            <div class="about-grid">
+                <div class="about-card reveal">
+                    <img class="about-card-img" id="img-coach_health" src="" alt="Health Coach" />
+                    <div class="about-card-body">
+                        <h3>Thu Hà</h3>
+                        <div class="about-card-role" data-i18n="about_role_health">Huấn Luyện Viên Sức Khỏe</div>
+                        <p data-i18n="about_desc_health">Chuyên gia về lối sống lành mạnh và dinh dưỡng Chánh niệm. Hơn
+                            8 năm kinh nghiệm giúp khách hàng phục hồi năng lượng.</p>
+                    </div>
+                </div>
+                <div class="about-card reveal reveal-delay-1">
+                    <img class="about-card-img" id="img-coach_yoga1" src="" alt="Yoga Coach 1" />
+                    <div class="about-card-body">
+                        <h3>Minh Đức</h3>
+                        <div class="about-card-role" data-i18n="about_role_yoga">Huấn Luyện Viên Yoga</div>
+                        <p data-i18n="about_desc_yoga1">Chuyên sâu Yoga trị liệu cột sống và đau mỏi cổ vai gáy. Kỹ
+                            thuật chỉnh sửa chuẩn xác.</p>
+                    </div>
+                </div>
+                <div class="about-card reveal reveal-delay-2">
+                    <img class="about-card-img" id="img-coach_yoga2" src="" alt="Yoga Coach 2" />
+                    <div class="about-card-body">
+                        <h3>Ngọc Anh</h3>
+                        <div class="about-card-role" data-i18n="about_role_yoga">Huấn Luyện Viên Yoga</div>
+                        <p data-i18n="about_desc_yoga2">Chuyên gia Yoga restore và thải độc cơ thể. Giúp giải tỏa căng
+                            thẳng sâu.</p>
+                    </div>
+                </div>
+                <div class="about-card reveal reveal-delay-3">
+                    <img class="about-card-img" id="img-coach_yoga3" src="" alt="Yoga Coach 3" />
+                    <div class="about-card-body">
+                        <h3>Hoàng Nam</h3>
+                        <div class="about-card-role" data-i18n="about_role_yoga">Huấn Luyện Viên Yoga</div>
+                        <p data-i18n="about_desc_yoga3">Huấn luyện viên Ashtanga và Vinyasa. Nâng cao sức bền và xây
+                            dựng kỷ luật.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TIMELINE -->
+    <section class="timeline-section">
+        <div class="container">
+            <p class="section-eyebrow reveal" style="justify-content:center;display:flex;" data-i18n="tl_eyebrow">Hành
+                trình đồng hành</p>
+            <h2 class="section-title reveal" style="text-align:center;" data-i18n="tl_title">Lộ Trình 8 Tuần</h2>
+            <div class="timeline">
+                <div class="timeline-step reveal">
+                    <div class="tl-dot">1</div>
+                    <h4 data-i18n="tl_s1_h4">Tuần 1</h4>
+                    <p data-i18n="tl_s1_p">Khám phá bản thân & lập lộ trình riêng.</p>
+                </div>
+                <div class="timeline-step reveal reveal-delay-1">
+                    <div class="tl-dot">2</div>
+                    <h4 data-i18n="tl_s2_h4">Tuần 2–4</h4>
+                    <p data-i18n="tl_s2_p">Xóa tan đau mỏi & phục hồi cơ bản.</p>
+                </div>
+                <div class="timeline-step reveal reveal-delay-2">
+                    <div class="tl-dot">3</div>
+                    <h4 data-i18n="tl_s3_h4">Tuần 5–8</h4>
+                    <p data-i18n="tl_s3_p">Kiến tạo thói quen & kỷ luật tự thân.</p>
+                </div>
+                <div class="timeline-step reveal reveal-delay-3">
+                    <div class="tl-dot">✓</div>
+                    <h4 data-i18n="tl_s4_h4">Sau 8 Tuần</h4>
+                    <p data-i18n="tl_s4_p">Làm chủ lối sống & duy trì bền vững.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- QUOTE -->
+    <section class="quote-section">
+        <img class="quote-bg-img" id="img-quote_bg" src="" alt="" />
+        <div class="quote-inner reveal">
+            <div class="quote-mark">"</div>
+            <p class="quote-text" data-i18n="quote_text">Cơ thể bạn là ngôi đền duy nhất bạn có. Hãy chăm sóc nó bằng cả
+                sự hiểu biết và tình yêu thương.</p>
+            <p class="quote-attr" data-i18n="quote_attr">— Triết lý Wellness</p>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section" id="cta">
+        <div class="container" style="max-width:680px;">
+            <p class="section-eyebrow reveal" style="justify-content:center;" data-i18n="cta_eyebrow">Sẵn sàng thay đổi?
+            </p>
+            <h2 class="section-title reveal" data-i18n="cta_title">Bắt Đầu Hành Trình Hôm Nay</h2>
+            <p class="cta-sub reveal" data-i18n="cta_sub">Để đảm bảo chất lượng Coaching, tôi chỉ nhận <strong>05 thành
+                    viên</strong> duy nhất cho chương trình trải nghiệm tháng này.</p>
+            <div class="cta-limit reveal" data-i18n="cta_limit">🔥 Còn 5 suất — tháng này</div>
+            <br>
+            <a href="https://calendly.com/" target="_blank" class="btn-primary reveal"
+                style="font-size:1rem;padding:1rem 2.5rem;" data-i18n="cta_btn">👉 Đặt lịch tư vấn miễn phí</a>
+            <div class="contact-row reveal">
+                <div>📱 Zalo: <a href="tel:0123456789">0123 456 789</a></div>
+                <div>🌐 Website: <a href="#">www.youryoga.com</a></div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 <span>YogaCoach</span> — Personalized Yoga & Coaching · Designed with care 🌿</p>
+    </footer>
+
+    <!-- MODALS -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+            <h2 class="section-title" style="font-size:1.5rem; margin-bottom:1.5rem;" data-i18n="form_title">Đăng Ký Tư
+                Vấn</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label data-i18n="form_name">Họ và tên</label>
+                    <input type="text" id="regName">
+                    <div class="form-error" id="nameError" data-i18n="form_name_err">Vui lòng nhập họ tên</div>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="form_email">Email (*)</label>
+                    <input type="email" id="regEmail">
+                    <div class="form-error" id="emailError" data-i18n="form_email_err">Vui lòng nhập email hợp lệ</div>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="form_phone">Số điện thoại</label>
+                    <input type="tel" id="regPhone">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="form_query">Câu hỏi/Nhu cầu của bạn</label>
+                    <textarea id="regQuery"></textarea>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%; text-align:center;"
+                    data-i18n="form_submit">Gửi đăng ký</button>
+                <div class="form-success" id="formSuccess">Thank you for your message, we will reach out to you as soon
+                    as possible.</div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Object.keys(IMAGES).forEach(function (key) {
+                var el = document.getElementById('img-' + key);
+                if (el && IMAGES[key]) el.src = IMAGES[key];
+            });
+            var heroEl = document.getElementById('hero');
+            if (heroEl) heroEl.style.backgroundImage = "url('" + IMAGES.hero_bg + "')";
+
+            // Auto-detect language from browser or localStorage
+            var savedLang = localStorage.getItem('currentLang');
+            var detectedLang = savedLang || ((navigator.language || 'vi').toLowerCase().startsWith('vi') ? 'vi' : 'en');
+            setLang(detectedLang);
+            initFormLogic();
+        });
+
+        // Re-apply images after async content.json load
+        function applyImages() {
+            Object.keys(IMAGES).forEach(function (key) {
+                var el = document.getElementById('img-' + key);
+                if (el && IMAGES[key]) el.src = IMAGES[key];
+            });
+            var heroEl = document.getElementById('hero');
+            if (heroEl) heroEl.style.backgroundImage = "url('" + IMAGES.hero_bg + "')";
+        }
+
+        var revealObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) { e.target.classList.add('in'); revealObserver.unobserve(e.target); }
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach(function (el) { revealObserver.observe(el); });
+
+        var nav = document.getElementById('mainNav');
+        window.addEventListener('scroll', function () { nav.classList.toggle('scrolled', window.scrollY > 50); });
+
+        var audioCtx = null, isPlaying = false, gainNode = null, audioElement = null;
+        function initAudio() {
+            // If a custom music URL is set, use audio element instead of Web Audio API
+            if (window.musicURL && window.musicURL.trim()) {
+                if (!audioElement) {
+                    audioElement = new Audio();
+                    audioElement.crossOrigin = 'anonymous';
+                    audioElement.src = window.musicURL;
+                    audioElement.loop = true;
+                    audioElement.volume = 0.3;
+                }
+                return;
+            }
+
+            // Otherwise, use Web Audio API for tone generation
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            gainNode = audioCtx.createGain(); gainNode.gain.value = 0; gainNode.connect(audioCtx.destination);
+            [220, 261.63, 329.63, 392].forEach(function (freq) {
+                var osc = audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq;
+                var oscGain = audioCtx.createGain(); oscGain.gain.value = 0.04; osc.connect(oscGain); oscGain.connect(gainNode); osc.start();
+            });
+        }
+        document.getElementById('soundToggle').addEventListener('click', function () {
+            initAudio();
+
+            // Handle custom music playback
+            if (audioElement) {
+                isPlaying = !isPlaying;
+                if (isPlaying) {
+                    audioElement.play().catch(function (err) {
+                        console.log('Audio play failed:', err.message);
+                    });
+                } else {
+                    audioElement.pause();
+                }
+                this.classList.toggle('muted', !isPlaying);
+                return;
+            }
+
+            // Handle Web Audio API tone playback
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            isPlaying = !isPlaying; this.classList.toggle('muted', !isPlaying);
+            gainNode.gain.linearRampToValueAtTime(isPlaying ? 0.25 : 0, audioCtx.currentTime + 0.5);
+        });
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function initFormLogic() {
+            // Registration Form Submission
+            document.getElementById('registerForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                var name = document.getElementById('regName').value.trim();
+                var email = document.getElementById('regEmail').value.trim();
+                var phone = document.getElementById('regPhone').value.trim();
+                var query = document.getElementById('regQuery').value.trim();
+
+                // Clear previous errors
+                document.getElementById('nameError').style.display = 'none';
+                document.getElementById('emailError').style.display = 'none';
+
+                var isValid = true;
+
+                // Validate Name
+                if (!name) {
+                    document.getElementById('nameError').style.display = 'block';
+                    isValid = false;
+                }
+
+                // Validate Email
+                if (!email || !email.includes('@') || !email.includes('.')) {
+                    document.getElementById('emailError').style.display = 'block';
+                    isValid = false;
+                }
+
+                if (!isValid) return;
+
+                var entry = {
+                    date: new Date().toLocaleString(),
+                    name: name,
+                    email: email,
+                    phone: phone || '-',
+                    query: query || '-'
+                };
+
+                var submissions = JSON.parse(localStorage.getItem('yoga_subs') || '[]');
+                submissions.push(entry);
+                localStorage.setItem('yoga_subs', JSON.stringify(submissions));
+
+                // Show Success Message
+                document.getElementById('formSuccess').style.display = 'block';
+
+                // Close modal and reset after 3 seconds
+                setTimeout(function () {
+                    document.getElementById('registerForm').reset();
+                    document.getElementById('formSuccess').style.display = 'none';
+                    closeModal('registerModal');
+                }, 3000);
+            });
+
+
+        }
+
+
+
+        const dict = {
+            vi: {
+                nav_about: "Về chúng tôi", nav_pain: "Vấn đề", nav_solution: "Giải pháp", nav_packages: "Gói dịch vụ", nav_cta: "Đặt lịch tư vấn miễn phí",
+                hero_eyebrow: "CÂN BẰNG · CHUYÊN HÓA · TRỌN VẸN", hero_h1: "Trở về với chính mình", hero_sub: "Chương trình yoga và coaching cá nhân hóa — giúp bạn nâng cao thể chất, làm chủ tâm trí và sống trọn vẹn hơn mỗi ngày.", hero_scroll: "Khám phá",
+                pain_eyebrow: "Bạn có đang trải qua?", pain_title: 'Bạn có đang "kiệt sức" thầm lặng?', pain_sub: "Dân văn phòng hiện đại đang đối mặt với những hệ lụy sức khỏe nghiêm trọng từ bàn làm việc, nhưng thường bị ngó lơ.",
+                pain_h3_1: "Cổ – Vai – Gáy", pain_p_1: "Cảm giác cứng đơ, đau nhức dai dẳng sau 8 tiếng ngồi máy tính. Cơ thể nặng nề và thiếu linh hoạt.",
+                pain_h3_2: "Stress & Sương Mù Tinh Thần", pain_p_2: "Mất tập trung, sụt giảm hiệu suất. Luôn thấy mệt mỏi dù đã ngủ đủ giấc, tinh thần lo âu.",
+                pain_h3_3: "Kỷ Luật Thất Bại", pain_p_3: "Mua thẻ Gym rồi bỏ phí. Muốn thay đổi nhưng luôn bị trì hoãn — vòng lặp không hồi kết.",
+                sol_eyebrow: "Bạn Có Biết?", sol_answer1_label: "Giải pháp thứ nhất", sol_title: "Thể Chất + Tư Duy =<br>Thay Đổi Thật Sự", sol_text: 'Yoga giải quyết <strong style="color:var(--sage-dark)">"Phần Ngọn"</strong> (thể chất), nhưng Coaching mới thay đổi <strong style="color:var(--sage-dark)">"Phần Gốc"</strong> (thói quen).', sol_answer2_label: "Giải pháp thứ hai",
+                pillar_title: "5 Trụ Cột Của Chương Trình", pillar_sub: "Nhấn vào từng trụ cột để khám phá chi tiết cách chúng tác động lên thể chất, tinh thần và thói quen của bạn.",
+                pillar1_h3: "Vận Động Đúng Cách", pillar1_p: "Bài tập thiết kế riêng cho tình trạng cột sống và cơ địa của bạn — không phải giáo án đại trà.",
+                pillar2_h3: "Ăn Uống Đúng Cách", pillar2_p: "Mẹo ăn uống lành mạnh mà không cần ăn kiêng khắt khe hay đếm calories.",
+                pillar3_h3: "Hơi Thở Đúng Cách", pillar3_p: "Kỹ thuật hít thở sâu giúp giảm stress tức thì, tăng oxy cho não và cân bằng hệ thần kinh.",
+                pillar4_h3: "Thư Giãn Đúng Cách", pillar4_p: 'Học cách "ngắt kết nối" công việc để tái tạo năng lượng tinh thần sâu và bền vững.',
+                pillar5_h3: "Tư Duy Tích Cực", pillar5_p: "Đồng hành nhắc nhở và xây dựng thói quen suy nghĩ tích cực mỗi ngày, chuyển hóa góc nhìn từ hạn chế sang phát triển.",
+                pkg_eyebrow: "Chương trình trải nghiệm — Founder's Offer", pkg_title: "Chọn Gói Phù Hợp Với Bạn", pkg_sub: "Cơ hội duy nhất để sở hữu lộ trình cao cấp với mức phí ưu đãi đặc biệt dành cho những người đầu tiên.",
+                pkg1_tag: "Gói 01", pkg1_h3: "Phục Hồi<br>30 Ngày", pkg1_desc: 'Dành cho người muốn "cấp cứu" nhanh các vấn đề đau mỏi và stress tích tụ.', pkg1_f1: "08 buổi Yoga Private 1-1", pkg1_f2: "02 phiên Coaching kỷ luật", pkg1_f3: "Hỗ trợ Zalo 30 ngày", pkg1_note: "* Giới hạn 03 suất đầu tiên",
+                pkg2_badge: "Phổ biến nhất", pkg2_tag: "Gói 02", pkg2_h3: "Cân Bằng<br>60 Ngày", pkg2_desc: "Hành trình cân bằng thể chất và tinh thần, thiết lập nền tảng thói quen bền vững.", pkg2_f1: "16 buổi Yoga Private chuyên sâu", pkg2_f2: "04 phiên Coaching kiến tạo lối sống", pkg2_f3: "Hỗ trợ Zalo suốt 60 ngày", pkg2_note: "* Giới hạn 03 suất đầu tiên",
+                pkg3_badge: "Chuyển hóa sâu", pkg3_tag: "Gói 03", pkg3_h3: "Chuyển Hóa<br>90 Ngày", pkg3_desc: "Hành trình thay đổi toàn diện từ tư duy đến vóc dáng, cam kết lột xác bền vững.", pkg3_f1: "24 buổi Yoga Private chuyên sâu", pkg3_f2: "06 phiên Coaching kiến tạo lối sống", pkg3_f3: "Tặng E-book tự tập & mẹo ăn uống", pkg3_f4: "Hỗ trợ Zalo suốt 90 ngày", pkg3_note: "* Giới hạn 02 suất đầu tiên", pkg_cta: "Đăng ký ngay",
+                about_eyebrow: "Đội ngũ chuyên gia", about_title: "Về Chúng Tôi", about_sub: "Đội ngũ huấn luyện viên giàu kinh nghiệm, tận tâm đồng hành cùng bạn trên hành trình chuyển hóa.", about_role_health: "Huấn Luyện Viên Sức Khỏe", about_desc_health: "Chuyên gia về lối sống lành mạnh và dinh dưỡng Chánh niệm. Hơn 8 năm kinh nghiệm giúp khách hàng phục hồi năng lượng.", about_role_yoga: "Huấn Luyện Viên Yoga", about_desc_yoga1: "Chuyên sâu Yoga trị liệu cột sống và đau mỏi cổ vai gáy. Kỹ thuật chỉnh sửa chuẩn xác.", about_desc_yoga2: "Chuyên gia Yoga restore và thải độc cơ thể. Giúp giải tỏa căng thẳng sâu.", about_desc_yoga3: "Huấn luyện viên Ashtanga và Vinyasa. Nâng cao sức bền và xây dựng kỷ luật.",
+                tl_eyebrow: "Hành trình đồng hành", tl_title: "Lộ Trình 8 Tuần", tl_s1_h4: "Tuần 1", tl_s1_p: "Khám phá bản thân & lập lộ trình riêng.", tl_s2_h4: "Tuần 2–4", tl_s2_p: "Xóa tan đau mỏi & phục hồi cơ bản.", tl_s3_h4: "Tuần 5–8", tl_s3_p: "Kiến tạo thói quen & kỷ luật tự thân.", tl_s4_h4: "Sau 8 Tuần", tl_s4_p: "Làm chủ lối sống & duy trì bền vững.",
+                quote_text: "Cơ thể bạn là ngôi đền duy nhất bạn có. Hãy chăm sóc nó bằng cả sự hiểu biết và tình yêu thương.", quote_attr: "— Triết lý Wellness",
+                cta_eyebrow: "Sẵn sàng thay đổi?", cta_title: "Bắt Đầu Hành Trình Hôm Nay", cta_sub: 'Để đảm bảo chất lượng Coaching, tôi chỉ nhận <strong>05 thành viên</strong> duy nhất cho chương trình trải nghiệm tháng này.', cta_limit: "🔥 Còn 5 suất — tháng này", cta_btn: "👉 Đặt lịch tư vấn miễn phí",
+                form_title: "Đăng Ký Tư Vấn", form_name: "Họ và tên", form_name_err: "Vui lòng nhập họ tên", form_email: "Email (*)", form_email_err: "Vui lòng nhập email hợp lệ", form_phone: "Số điện thoại", form_query: "Câu hỏi/Nhu cầu của bạn", form_submit: "Gửi đăng ký"
+            },
+            en: {
+                nav_about: "About Us", nav_pain: "Problems", nav_solution: "Solution", nav_packages: "Packages", nav_cta: "Book a free consultation",
+                hero_eyebrow: "BALANCE · SPECIALIZATION · WHOLENESS", hero_h1: "Return to Yourself", hero_sub: "A personalized yoga and coaching program — helping you improve your physique, master your mind, and live more fully every day.", hero_scroll: "Discover",
+                pain_eyebrow: "Are you experiencing?", pain_title: 'Are you silently "burning out"?', pain_sub: "Modern office workers face serious health consequences from their desks, but they are often ignored.",
+                pain_h3_1: "Neck – Shoulder – Back", pain_p_1: "Stiffness and chronic aching after 8 hours at the computer. Heavy body and lack of flexibility.",
+                pain_h3_2: "Stress & Brain Fog", pain_p_2: "Lack of focus, decreased performance. Always tired even after enough sleep, anxious mind.",
+                pain_h3_3: "Failed Discipline", pain_p_3: "Gym memberships wasted. Wanting to change but always procrastinating — an endless loop.",
+                sol_eyebrow: "Do You Know?", sol_answer1_label: "First Solution", sol_title: "Body + Mind =<br>Real Change", sol_text: 'Yoga solves the <strong style="color:var(--sage-dark)">"Branch"</strong> (physical), but Coaching changes the <strong style="color:var(--sage-dark)">"Root"</strong> (habits).', sol_answer2_label: "Second Solution",
+                pillar_title: "5 Pillars Of The Program", pillar_sub: "Click on each pillar to discover how they impact your body, mind, and daily habits.",
+                pillar1_h3: "Right Exercise", pillar1_p: "Exercises designed specifically for your spinal condition and body type — not a one-size-fits-all plan.",
+                pillar2_h3: "Right Eating", pillar2_p: "Healthy eating tips without strict dieting or counting calories.",
+                pillar3_h3: "Right Breathing", pillar3_p: "Deep breathing techniques that instantly reduce stress, boost oxygen to the brain and balance the nervous system.",
+                pillar4_h3: "Right Relaxing", pillar4_p: 'Learn to "disconnect" from work to rebuild deep and sustainable mental energy.',
+                pillar5_h3: "Positive Thinking", pillar5_p: "Daily companionship and reminders to build positive thinking habits, transforming your perspective from limitation to growth.",
+                pkg_eyebrow: "Experience Program — Founder's Offer", pkg_title: "Choose Your Package", pkg_sub: "A unique opportunity to own a premium roadmap with special pricing for the first adopters.",
+                pkg1_tag: "Package 01", pkg1_h3: "30-Day<br>Recovery", pkg1_desc: 'For those who want a quick "rescue" from accumulated aches and stress.', pkg1_f1: "08 Private Yoga 1-1 sessions", pkg1_f2: "02 Discipline Coaching sessions", pkg1_f3: "30-day Zalo support", pkg1_note: "* Limited to the first 03 slots",
+                pkg2_badge: "Most Popular", pkg2_tag: "Package 02", pkg2_h3: "60-Day<br>Balance", pkg2_desc: "A journey to balance body and mind, establishing a sustainable habit foundation.", pkg2_f1: "16 Intensive Private Yoga sessions", pkg2_f2: "04 Lifestyle Coaching sessions", pkg2_f3: "60-day Zalo support", pkg2_note: "* Limited to the first 03 slots",
+                pkg3_badge: "Deep Transformation", pkg3_tag: "Package 03", pkg3_h3: "90-Day<br>Transformation", pkg3_desc: "A comprehensive journey from mindset to physique, committed to sustainable transformation.", pkg3_f1: "24 Intensive Private Yoga sessions", pkg3_f2: "06 Lifestyle Coaching sessions", pkg3_f3: "Free E-book & eating tips", pkg3_f4: "90-day Zalo support", pkg3_note: "* Limited to the first 02 slots", pkg_cta: "Sign Up Now",
+                about_eyebrow: "Our experts", about_title: "About Us", about_sub: "A team of experienced coaches dedicated to accompanying you on your transformation journey.", about_role_health: "Health Coach", about_desc_health: "Expert in healthy lifestyles and mindful nutrition. Over 8 years of experience helping clients restore energy.", about_role_yoga: "Yoga Coach", about_desc_yoga1: "Specializing in therapeutic Yoga for the spine and neck/shoulder pain. Precise correction techniques.", about_desc_yoga2: "Expert in Restorative Yoga and body detox. Helping release deep tension.", about_desc_yoga3: "Ashtanga and Vinyasa coach. Focused on building endurance and discipline.",
+                tl_eyebrow: "The Journey", tl_title: "8-Week Roadmap", tl_s1_h4: "Week 1", tl_s1_p: "Self-discovery & personal roadmap.", tl_s2_h4: "Week 2–4", tl_s2_p: "Relieve pain & basic recovery.", tl_s3_h4: "Week 5–8", tl_s3_p: "Build habits & self-discipline.", tl_s4_h4: "After 8 Weeks", tl_s4_p: "Master your lifestyle & maintain sustainability.",
+                quote_text: "Your body is the only temple you have. Take care of it with both understanding and love.", quote_attr: "— Wellness Philosophy",
+                cta_eyebrow: "Ready to change?", cta_title: "Start Your Journey Today", cta_sub: 'To ensure Coaching quality, I only accept <strong>05 members</strong> for this month\'s experience program.', cta_limit: "🔥 5 slots left — this month", cta_btn: "👉 Book a free consultation",
+                form_title: "Registration", form_name: "Full Name", form_name_err: "Please enter your name", form_email: "Email (*)", form_email_err: "Please enter a valid email", form_phone: "Phone Number", form_query: "Your queries/needs", form_submit: "Submit Registration"
+            }
+        };
+
+        // Current language
+        var currentLang = localStorage.getItem('currentLang') || 'vi';
+
+        // Apply dictionary for a given language to all data-i18n elements
+        function applyDict(lang) {
+            if (!lang) lang = currentLang;
+            var d = dict[lang];
+            document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                var key = el.getAttribute('data-i18n');
+                if (d && d[key]) el.innerHTML = d[key];
+            });
+        }
+
+        // Switch language
+        function setLang(lang) {
+            if (!dict[lang]) lang = 'vi';
+            currentLang = lang;
+            localStorage.setItem('currentLang', lang);
+            document.documentElement.lang = lang;
+            document.getElementById('langVi').classList.toggle('active', lang === 'vi');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            applyDict(lang);
+        }
+
+        // Override BOTH dictionaries with persisted content from admin
+        // So edits reflect in both VN and EN views
+        (function () {
+            var custom = JSON.parse(localStorage.getItem('yoga_content') || '{}');
+            Object.keys(dict).forEach(function (lang) {
+                Object.keys(custom).forEach(function (key) {
+                    if (!key.startsWith('img_') && dict[lang][key] !== undefined) {
+                        dict[lang][key] = custom[key];
+                    }
+                });
+            });
+            applyDict();
+        })();
+
+        // Apply server-side content.json overrides to BOTH dictionaries
+        function applyServerText(serverData) {
+            Object.keys(dict).forEach(function (lang) {
+                Object.keys(serverData).forEach(function (key) {
+                    if (!key.startsWith('img_') && key !== 'hero_bg' && key !== 'quote_bg') {
+                        if (dict[lang][key] !== undefined) {
+                            dict[lang][key] = serverData[key];
+                        }
+                    }
+                });
+            });
+            applyDict();
+        }
+    </script>
+
+</body>
+
+</html>
